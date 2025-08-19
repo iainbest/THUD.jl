@@ -20,16 +20,16 @@ some notes:
     - repetition unlikely to be feasible due to size of board etc., although there is some symmetry to the board we could exploit
 
 
-quick todo:
-    - ~~undo move function?~~
-    - compartmentalise / tidy up existing codebase!
-    - highlight possible moves based on query square (highlight possible moves and captures in different colours)
-      - move from plots to makie? see `printing.jl` for links
-    - go from board / matrix representation to string move representation (reverse is implemented)
-    - simple engine (random moves)
-    - player vs engine
-    - engine vs engine
-    - slightly more sophisticated learning (minimax / tree search)
+TODO:
+- ~~undo move function?~~
+- compartmentalise / tidy up existing codebase!
+- highlight possible moves based on query square (highlight possible moves and captures in different colours)
+  - move from plots to makie? see `printing.jl` for links
+- go from board / matrix representation to string move representation (reverse is implemented)
+- simple engine (random moves)
+- player vs engine
+- engine vs engine
+- slightly more sophisticated learning (minimax / tree search)
 
 
 some cool facts!
