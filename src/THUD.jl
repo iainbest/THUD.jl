@@ -1,14 +1,14 @@
 module THUD
-
-using Revise
-using LinearAlgebra
-using Plots
+using Reexport
+@reexport using Revise
+@reexport using LinearAlgebra
+@reexport using Plots
 
 ### includet for revise.jl revisions
-includet("./constants.jl")
-includet("./extrafunctions.jl")
-includet("./evaluation.jl")
-includet("./printing.jl")
-includet("./minimax.jl")
+includet("constants.jl")
+includet("extrafunctions.jl")
+includet("evaluation.jl")
+includet("printing.jl")
+includet("minimax.jl")
 
 end
