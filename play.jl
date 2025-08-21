@@ -10,8 +10,6 @@
 ### https://juliaplots.org/MakieReferenceImages/gallery/index.html
 
 
-
-
 includet("src/THUD.jl")
 using .THUD
 
@@ -29,17 +27,11 @@ global move_scatters = Ref(Vector{Any}())
 global capture_scatters = Ref(Vector{Any}())
 global piece_scatters = Ref(Vector{Any}())
 
-### count number of turns
-number_turns = 0
-
-### track moves made
+### setup turn counter and trackers
+number_turns = Ref(0)
 move_tracker = []
-### board evaluation tracker
 eval_tracker = []
-
-### number of dwarves tracker
 num_dwarves_tracker = []
-### number of trolls tracker
 num_trolls_tracker = []
 
 # Initialize makie figure and axis
@@ -91,20 +83,22 @@ onmouseleftclick(mevents) do event
 
         if [square[2],square[1]] ∈ GetPossibleDwarfMoves(selected_square.x[2],selected_square.x[1],board)
 
-            mvstring = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],"Mv",dwarf_turn[])
-            # @show mvstring
+            move_string = MoveStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],dwarf_turn[])
 
             ### perform the dwarf move
             MoveDwarf([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
 
             ### clear / fix plot by removing and re-placing pieces
             ReplacePieces!(ax, piece_scatters, board, pieces)
+
+            UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+            @show number_turns
             
 
         elseif [square[2],square[1]] ∈ GetPossibleDwarfHurls(selected_square.x[2],selected_square.x[1],board)
 
-            mvstring = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],"Hu",dwarf_turn[])
-            # @show mvstring
+            move_string = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],dwarf_turn[])
 
             # Perform the capture
             ### check this func call
@@ -112,9 +106,13 @@ onmouseleftclick(mevents) do event
 
             ### clear / fix plot by removing and re-placing pieces
             ReplacePieces!(ax, piece_scatters, board, pieces)
+
+            UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+            @show number_turns
             
         else
-            println("Invalid move or capture selected.")
+            # println("Invalid move or capture selected.")
 
             ClearHighlights!(ax, move_scatters, capture_scatters)
 
@@ -139,20 +137,22 @@ onmouseleftclick(mevents) do event
         ### troll capture must go first here! 
         if [square[2],square[1]] ∈ GetPossibleTrollShoves(selected_square.x[2],selected_square.x[1],board)
 
-            mvstring = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],"Sh",dwarf_turn[])
-            # @show mvstring
+            move_string = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],dwarf_turn[])
 
             ### Perform the capture
             ShoveTroll([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
 
             ### clear / fix plot by removing and re-placing pieces
             ReplacePieces!(ax, piece_scatters, board, pieces)
+
+            UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+            @show number_turns
             
 
         elseif [square[2],square[1]] ∈ GetPossibleTrollMoves(selected_square.x[2],selected_square.x[1],board)
 
-            mvstring = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],"Mv",dwarf_turn[])
-            # @show mvstring
+            move_string = MoveStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],dwarf_turn[])
 
             ### Perform the move
             MoveTroll([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
@@ -160,9 +160,13 @@ onmouseleftclick(mevents) do event
             ### clear / fix plot by removing and re-placing pieces
             ReplacePieces!(ax, piece_scatters, board, pieces)
 
+            UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+            @show number_turns
+
             
         else
-            println("Invalid move or capture selected.")
+            # println("Invalid move or capture selected.")
 
             ClearHighlights!(ax, move_scatters, capture_scatters)
 
@@ -181,7 +185,7 @@ onmouseleftclick(mevents) do event
         dwarf_turn[] = true
 
     end
-    
+
     return
     
 end
