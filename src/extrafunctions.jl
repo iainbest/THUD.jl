@@ -825,10 +825,10 @@ function GetAllPossibleMoves(board, PLAYER_TURN)
 end
 
 ### assumes turn variable is correct! TODO fix
-function MoveStringFromBoard(initial_pos, final_pos, PLAYER_TURN)
+function MoveStringFromBoard(initial_pos, final_pos, dwarf_turn)
     
     a = ""
-    if PLAYER_TURN
+    if dwarf_turn[]
         a = "Dw"
     else
         a = "Tr"
@@ -839,16 +839,19 @@ end
 
 ### assumes turn variable is correct! TODO fix
 ### move type depends on what you are doing e.g. move_type = "Hu" OR "Mv" OR "Sh"
-function CaptureStringFromBoard(initial_pos, final_pos, move_type, dwarf_turn)
+function CaptureStringFromBoard(initial_pos, final_pos, dwarf_turn)
 
     a = ""
+    c = ""
     if dwarf_turn[]
         a = "Dw"
+        c = "Hu"
     else
         a = "Tr"
+        c = "Sh"
     end
 
-    return a * "-" * files[initial_pos[2]] * string(initial_pos[1]) * "-" * move_type * "-" * files[final_pos[2]] * string(final_pos[1])
+    return a * "-" * files[initial_pos[2]] * string(initial_pos[1]) * "-" * c * "-" * files[final_pos[2]] * string(final_pos[1])
 
 end
 
@@ -1075,20 +1078,24 @@ end
 
 
 ### update trackers of board / game
-function UpdateTrackers(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+function UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
     push!(move_tracker, move_string)
     push!(eval_tracker, EvaluateBoard(board))
     push!(num_dwarves_tracker, CountDwarves(board))
     push!(num_trolls_tracker, CountTrolls(board))
-    number_turns += 1
+    number_turns[] += 1
 end
 
-### TODO
-### make start board again, remove most recent move from move_tracker, run through moves to get back to previous
-function UndoMove!(board, move_tracker)
+### TODO check if this works
+### undo the last move, i.e. revert board to previous state
+function UndoMove!(board, move_tracker, dwarf_turn)
 
     StartPositions!(board)
     pop!(move_tracker)
+    pop!(eval_tracker)
+    pop!(num_dwarves_tracker)
+    pop!(num_trolls_tracker)
+    number_turns[] -= 1
 
     for move in move_tracker
 
@@ -1096,7 +1103,9 @@ function UndoMove!(board, move_tracker)
 
     end
 
-    return board, move_tracker
+    dwarf_turn[] = !dwarf_turn[]
+
+    return
     
 end
 
