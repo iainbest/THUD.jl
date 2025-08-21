@@ -1,25 +1,36 @@
-# using THUD
+### might be worth swapping from plots to Makie for printing the board
+### see gist and video below
+
+### https://gist.github.com/Datseris/4b9d25a3ddb3936d3b83d3037f8188dd
+### https://www.youtube.com/watch?v=L-gyDvhjzGQ&t=377s
+
+### some inspo from:
+
+### https://discourse.julialang.org/t/options-for-simple-board-game-gui/119851/2
+### https://juliaplots.org/MakieReferenceImages/gallery/index.html
+
+
+
+
 includet("src/THUD.jl")
 using .THUD
 
-# Initialize Thud board
-board = MakeEmptyBoard(BOARD_SIZE)
-StartPositions!(board)
+### activate glmakie backend to change title of plotting window
+GLMakie.activate!( title = "THUD" )
 
-# Print the board
-### to repl:
-# print_board(board)
-### to image
-PrintBoard(board)
+### initialize some global variables
+pieces = [tuple('D', :white), tuple('R', :black), tuple('T',:grey)]
+click_mode = Ref(:normal)
+selected_square = Ref{Point{2, Int64}}()
+dwarf_turn = Ref(true)
 
-### ASSUMING PLAYER IS PLAYING DWARVES!!!!!!!!!!!!!!!!!!!!!!!
-PLAYER_TURN = true
+### some plotting variables for updating makie plotted board
+global move_scatters = Ref(Vector{Any}())
+global capture_scatters = Ref(Vector{Any}())
+global piece_scatters = Ref(Vector{Any}())
+
 ### count number of turns
 number_turns = 0
-
-### number of moves
-### dwarves go first, trolls go second
-
 
 ### track moves made
 move_tracker = []
@@ -31,48 +42,149 @@ num_dwarves_tracker = []
 ### number of trolls tracker
 num_trolls_tracker = []
 
+# Initialize makie figure and axis
+f = Figure()
+ax = Axis(f[1, 1], aspect = 1)
+hidedecorations!(ax)
 
+# Initialize Thud board
+board = MakeEmptyBoard(BOARD_SIZE)
+StartPositions!(board)
 
-# board = MoveFromString!(board,"Dw-F1-Mv-F2");
+### set up makie board and add mouse interactivity
+hm = SetUpHeatMapGrid(ax)
+AddLinesToHeatmap!(ax)
+AddPiecesToHeatmapGrid!(ax, board, pieces)
+for int in keys(interactions(ax))
+    deactivate_interaction!(ax, int)
+end 
+mevents = addmouseevents!(ax.scene, hm)
 
+### add mouse behaviour & link to game logic
+onmouseleftclick(mevents) do event
+    square = round.(Int, event.data)
 
-### player playing dwarves
+    ### if dwarf turn and dwarf is selected
+    if click_mode[] == :normal && dwarf_turn[] && board[square[2], square[1]] == 1
 
-# for i in 1:5
+        ### get possible dwarf moves 
+        moves = GetPossibleDwarfMoves(square[2], square[1], board)
+        captures = GetPossibleDwarfHurls(square[2], square[1], board)
 
-#     ### Dw-G1-Mv-C5
+        ShowHighlights!(ax, move_scatters, capture_scatters, moves, captures)
 
-#     println("Enter move string:")
-#     move_string = readline()
+        click_mode[] = :await_move
+        selected_square[] = square
 
-#     all_strings = CollectAllStrings(board, PLAYER_TURN);
+    elseif click_mode[] == :normal && !dwarf_turn[] && board[square[2], square[1]] == 2
 
-#     @assert move_string ∈ all_strings
+        ### get possible troll moves 
+        moves = GetPossibleTrollMoves(square[2], square[1], board)
+        captures = GetPossibleTrollShoves(square[2], square[1], board)
 
-#     # @show findfirst(x->x==move_string, all_strings)
+        ShowHighlights!(ax, move_scatters, capture_scatters, moves, captures)
+
+        click_mode[] = :await_move
+        selected_square[] = square
+
+    elseif click_mode[] == :await_move && dwarf_turn[]
+
+        if [square[2],square[1]] ∈ GetPossibleDwarfMoves(selected_square.x[2],selected_square.x[1],board)
+
+            mvstring = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],"Mv",dwarf_turn[])
+            # @show mvstring
+
+            ### perform the dwarf move
+            MoveDwarf([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
+
+            ### clear / fix plot by removing and re-placing pieces
+            ReplacePieces!(ax, piece_scatters, board, pieces)
+            
+
+        elseif [square[2],square[1]] ∈ GetPossibleDwarfHurls(selected_square.x[2],selected_square.x[1],board)
+
+            mvstring = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],"Hu",dwarf_turn[])
+            # @show mvstring
+
+            # Perform the capture
+            ### check this func call
+            HurlDwarf([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
+
+            ### clear / fix plot by removing and re-placing pieces
+            ReplacePieces!(ax, piece_scatters, board, pieces)
+            
+        else
+            println("Invalid move or capture selected.")
+
+            ClearHighlights!(ax, move_scatters, capture_scatters)
+
+            ### Reset state
+            click_mode[] = :normal
+            dwarf_turn[] = dwarf_turn[]
+
+            return
+
+        end
+
+        # Clear highlights
+        ClearHighlights!(ax, move_scatters, capture_scatters)
+
+        # Reset state
+        click_mode[] = :normal
+        # selected_square[] = nothing
+        dwarf_turn[] = false
+
+    elseif click_mode[] == :await_move && !dwarf_turn[]
+
+        ### troll capture must go first here! 
+        if [square[2],square[1]] ∈ GetPossibleTrollShoves(selected_square.x[2],selected_square.x[1],board)
+
+            mvstring = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],"Sh",dwarf_turn[])
+            # @show mvstring
+
+            ### Perform the capture
+            ShoveTroll([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
+
+            ### clear / fix plot by removing and re-placing pieces
+            ReplacePieces!(ax, piece_scatters, board, pieces)
+            
+
+        elseif [square[2],square[1]] ∈ GetPossibleTrollMoves(selected_square.x[2],selected_square.x[1],board)
+
+            mvstring = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],"Mv",dwarf_turn[])
+            # @show mvstring
+
+            ### Perform the move
+            MoveTroll([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
+
+            ### clear / fix plot by removing and re-placing pieces
+            ReplacePieces!(ax, piece_scatters, board, pieces)
+
+            
+        else
+            println("Invalid move or capture selected.")
+
+            ClearHighlights!(ax, move_scatters, capture_scatters)
+
+            ### Reset state
+            click_mode[] = :normal
+            dwarf_turn[] = dwarf_turn[]
+
+            return
+        end
+
+        ClearHighlights!(ax, move_scatters, capture_scatters)
+
+        # Reset state
+        click_mode[] = :normal
+        # selected_square[] = nothing
+        dwarf_turn[] = true
+
+    end
     
-#     MoveFromString!(board, move_string)
+    return
+    
+end
 
-#     UpdateTrackers(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
-#     PrintBoard(board)
-
-#     ### trolls possible moves
-#     troll_positions, troll_moves, troll_captures = GetPossibleMoves(board, !PLAYER_TURN)
-
-#     ### randomly select one troll
-#     a = rand(1:length(troll_positions))
-
-#     all_strings = []
-
-#     push!(all_strings, [MoveStringFromBoard(troll_positions[a],j,!PLAYER_TURN) for j in troll_moves[a]])
-#     push!(all_strings, [CaptureStringFromBoard(troll_positions[a],j,!PLAYER_TURN) for j in troll_captures[a]])
-
-#     possible_troll_moves = reduce(vcat, all_strings)
-#     troll_move = rand(possible_troll_moves)
-
-#     MoveFromString!(board, troll_move)
-
-#     UpdateTrackers(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, troll_move, number_turns)
-#     PrintBoard(board)
-
-# end
+### display & play
+f
