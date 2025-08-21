@@ -20,19 +20,26 @@ some notes:
     - repetition unlikely to be feasible due to size of board etc., although there is some symmetry to the board we could exploit
 
 
-TODO:
-- ~~undo move function?~~
+### TODO:
+#### Misc
+- ~~undo move function?~~ - Done, check this still works
 - compartmentalise / tidy up existing codebase!
-- highlight possible moves based on query square (highlight possible moves and captures in different colours)
-  - move from plots to makie? see `printing.jl` for links
-- go from board / matrix representation to string move representation (reverse is implemented)
+- add some discworld flavour to the player experience...
+
+#### Makie Plotting
+- ~~move from plots to makie? see `printing.jl` for links~~
+- ~~highlight possible moves based on query square (highlight possible moves and captures in different colours)~~ - Done, can edit visuals later
+- change glmakie window icon (see [here](https://discourse.julialang.org/t/change-window-icon-in-glmakie/93517))
+- go from board / matrix representation to string move representation (reverse is implemented) - Maybe done, check etc.
+  
+#### Engines
 - simple engine (random moves)
 - player vs engine
 - engine vs engine
 - slightly more sophisticated learning (minimax / tree search)
 
 
-some cool facts!
+### some cool facts!
 - 656 possible opening moves for dwarves
     - `positions, moves, captures = GetPossibleMoves(board, turn)` with turn=1 on starting board
     - then `sum(length.(moves))`
