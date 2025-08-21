@@ -2,7 +2,8 @@ module THUD
 using Reexport
 @reexport using Revise
 @reexport using LinearAlgebra
-@reexport using Plots
+# @reexport using Plots
+@reexport using GLMakie
 
 ### includet for revise.jl revisions
 includet("constants.jl")
