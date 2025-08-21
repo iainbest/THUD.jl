@@ -224,7 +224,11 @@ function GetPossibleDwarfMoves(j, i, board)
             first_occupied_square[2] -= 1
         end
     catch e
-        println(e)
+        ### can get ArgumentError: reducing over an empty collection is not allowed; consider supplying `init` to the reducer 
+        ### by doing argmin([]) i assume
+        ### doesnt seem to break if i catch it here
+        ### TODO fix
+        # println(e)
     end
 
     ### top right
@@ -763,7 +767,7 @@ function GetTrollPositions(board)
 end
 
 ### returns three lists: current positions, candidate move positions and candidate capture positions
-function GetPossibleMoves(board, PLAYER_TURN)
+function GetAllPossibleMoves(board, PLAYER_TURN)
     
     if PLAYER_TURN
         ### dwarves move
@@ -834,26 +838,24 @@ function MoveStringFromBoard(initial_pos, final_pos, PLAYER_TURN)
 end
 
 ### assumes turn variable is correct! TODO fix
-function CaptureStringFromBoard(initial_pos, final_pos, PLAYER_TURN)
+### move type depends on what you are doing e.g. move_type = "Hu" OR "Mv" OR "Sh"
+function CaptureStringFromBoard(initial_pos, final_pos, move_type, dwarf_turn)
 
     a = ""
-    c = ""
-    if PLAYER_TURN
+    if dwarf_turn[]
         a = "Dw"
-        c = "Hu"
     else
         a = "Tr"
-        c = "Sh"
     end
 
-    return a * "-" * files[initial_pos[2]] * string(initial_pos[1]) * "-" * c * "-" * files[final_pos[2]] * string(final_pos[1])
+    return a * "-" * files[initial_pos[2]] * string(initial_pos[1]) * "-" * move_type * "-" * files[final_pos[2]] * string(final_pos[1])
 
 end
 
 ### TODO finish
 function CollectAllStrings(board, PLAYER_TURN)
 
-    a,b,c = GetPossibleMoves(board, PLAYER_TURN)
+    a,b,c = GetAllPossibleMoves(board, PLAYER_TURN)
 
     all_strings = []
     for i in eachindex(a)
@@ -1100,9 +1102,9 @@ end
 
 function GetRandomMove(board, PLAYER_TURN)
     if PLAYER_TURN
-        p,m,c = GetPossibleMoves(board, PLAYER_TURN)
+        p,m,c = GetAllPossibleMoves(board, PLAYER_TURN)
     else
-        p,m,c = GetPossibleMoves(board, !PLAYER_TURN)
+        p,m,c = GetAllPossibleMoves(board, !PLAYER_TURN)
     end
 
     
