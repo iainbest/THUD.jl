@@ -1,9 +1,9 @@
 function CountDwarves(board)
-    return count(==(DWARF),board)
+    return count(==(DWARF), board)
 end
 
 function CountTrolls(board)
-    return count(==(TROLL),board)
+    return count(==(TROLL), board)
 end
 
 ### dwarves are worth 1 point each
@@ -16,7 +16,7 @@ function GetAverageDwarfNeighbours(board)
     average_dwarf_neighbours = 0
     for dwarf_pos in GetDwarfPositions(board)
         neighbours = GetSquareNeighbours(dwarf_pos[1], dwarf_pos[2], board)
-        average_dwarf_neighbours += count(==(DWARF),[board[n_...] for n_ in neighbours])
+        average_dwarf_neighbours += count(==(DWARF), [board[n_...] for n_ in neighbours])
     end
     average_dwarf_neighbours /= CountDwarves(board)
     return average_dwarf_neighbours
@@ -30,7 +30,7 @@ function GetThreatenedTrolls(board)
         poss_hurls = GetPossibleDwarfHurls(dwarf_pos[1], dwarf_pos[2], board)
         for hurl in poss_hurls
             if hurl ∈ poss_trolls
-                filter!(x->x!=hurl,poss_trolls)
+                filter!(x -> x != hurl, poss_trolls)
             end
         end
     end
@@ -48,10 +48,10 @@ function GetThreatenedDwarves(board)
         for move in troll_moves
             neighbours = GetSquareNeighbours(move[1], move[2], board)
             ### filter neighbours for dwarves
-            filter!(x->board[x...]==DWARF, neighbours)
+            filter!(x -> board[x...] == DWARF, neighbours)
             for n in neighbours
                 if n ∈ poss_dwarves
-                    filter!(x->x!=n,poss_dwarves)
+                    filter!(x -> x != n, poss_dwarves)
                 end
             end
         end
@@ -61,10 +61,10 @@ function GetThreatenedDwarves(board)
         for shove in troll_shoves
             neighbours = GetSquareNeighbours(shove[1], shove[2], board)
             ### filter neighbours for dwarves
-            filter!(x->board[x...]==DWARF, neighbours)
+            filter!(x -> board[x...] == DWARF, neighbours)
             for n in neighbours
                 if n ∈ poss_dwarves
-                    filter!(x->x!=n,poss_dwarves)
+                    filter!(x -> x != n, poss_dwarves)
                 end
             end
         end
@@ -82,8 +82,8 @@ end
 ### +'ve for dwarves, -'ve for trolls
 function EvaluateBoard(board)
 
-    return EvaluatePieceValues(board) + 
-            (GetAverageDwarfNeighbours(board) - 1.75) +
-            (GetThreatenedTrolls(board) * 2) -
-            (GetThreatenedDwarves(board) * 0.5)
+    return EvaluatePieceValues(board) +
+           (GetAverageDwarfNeighbours(board) - 1.75) +
+           (GetThreatenedTrolls(board) * 2) -
+           (GetThreatenedDwarves(board) * 0.5)
 end

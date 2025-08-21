@@ -21,30 +21,30 @@ allcombinations(v...) = vec(collect(Iterators.product(v...)))
 ### j is row, i is column in board matrix
 function GetSquareNeighbours(j, i, board)
 
-    row_idxs = [j-1, j, j+1]
-    column_idxs = [i-1, i, i+1]
+    row_idxs = [j - 1, j, j + 1]
+    column_idxs = [i - 1, i, i + 1]
 
     ### first remove neighbours above/below top/bottom rows
     if j == 1
-        filter!(x->x!=j-1, row_idxs)
+        filter!(x -> x != j - 1, row_idxs)
     end
     if j == 15
-        filter!(x->x!=j+1, row_idxs)
+        filter!(x -> x != j + 1, row_idxs)
     end
 
     ### remove neighbours to left/right of first/last columns
     if i == 1
-        filter!(x->x!=i-1, column_idxs)
+        filter!(x -> x != i - 1, column_idxs)
     end
     if i == 15
-        filter!(x->x!=i+1, column_idxs)
+        filter!(x -> x != i + 1, column_idxs)
     end
 
     ### get neighbour indices as Vector{Vector{Int64}}
     neighbours = collect.(allcombinations(row_idxs, column_idxs))
 
     ### remove input square as neighbour
-    filter!(x->x!=[j,i],neighbours)
+    filter!(x -> x != [j, i], neighbours)
 
     # ### remove king / rock as possible neighbour
     # filter!(x->x!=[8,8],neighbours)
@@ -68,13 +68,13 @@ function GetDiagonals(j, i, board)
         if j == row
             continue
         end
-        col1 = i - (j-row)
+        col1 = i - (j - row)
         if 1 <= col1 <= s
-            push!(out, [row,col1])
+            push!(out, [row, col1])
         end
-        col2 = i + (j-row)
+        col2 = i + (j - row)
         if 1 <= col2 <= s
-            push!(out, [row,col2])
+            push!(out, [row, col2])
         end
     end
 
@@ -170,18 +170,18 @@ function GetPossibleDwarfMoves(j, i, board)
     rank_squares_occupied = [OccupiedSquare(a..., board) for a in rank_squares]
 
     ### above(right)
-    idx = findfirst(x->x==1,rank_squares_occupied[findall(x->x[2]>i, rank_squares)])
+    idx = findfirst(x -> x == 1, rank_squares_occupied[findall(x -> x[2] > i, rank_squares)])
     try
-        push!(PossibleDwarfMoves,rank_squares[i:findall(x->x[2]>i, rank_squares)[idx]-1])
+        push!(PossibleDwarfMoves, rank_squares[i:findall(x -> x[2] > i, rank_squares)[idx]-1])
     catch e
-        push!(PossibleDwarfMoves,[])
+        push!(PossibleDwarfMoves, [])
     end
     ### below(left)
-    idx = findlast(x->x==1,rank_squares_occupied[findall(x->x[2]<i, rank_squares)])
+    idx = findlast(x -> x == 1, rank_squares_occupied[findall(x -> x[2] < i, rank_squares)])
     try
-        push!(PossibleDwarfMoves,rank_squares[findall(x->x[2]<i, rank_squares)[idx]+1:i-1])
+        push!(PossibleDwarfMoves, rank_squares[findall(x -> x[2] < i, rank_squares)[idx]+1:i-1])
     catch e
-        push!(PossibleDwarfMoves,rank_squares[1:i-1])
+        push!(PossibleDwarfMoves, rank_squares[1:i-1])
     end
 
     ### then file
@@ -190,18 +190,18 @@ function GetPossibleDwarfMoves(j, i, board)
     file_squares_occupied = [OccupiedSquare(a..., board) for a in file_squares]
 
     ### above
-    idx = findfirst(x->x==1,file_squares_occupied[findall(x->x[1]>j, file_squares)])
+    idx = findfirst(x -> x == 1, file_squares_occupied[findall(x -> x[1] > j, file_squares)])
     try
-        push!(PossibleDwarfMoves,file_squares[j:findall(x->x[1]>j, file_squares)[idx]-1])
+        push!(PossibleDwarfMoves, file_squares[j:findall(x -> x[1] > j, file_squares)[idx]-1])
     catch e
-        push!(PossibleDwarfMoves,[])
+        push!(PossibleDwarfMoves, [])
     end
     ### below
-    idx = findlast(x->x==1,file_squares_occupied[findall(x->x[1]<j, file_squares)])
+    idx = findlast(x -> x == 1, file_squares_occupied[findall(x -> x[1] < j, file_squares)])
     try
-        push!(PossibleDwarfMoves,file_squares[findall(x->x[1]<j, file_squares)[idx]+1:j-1])
+        push!(PossibleDwarfMoves, file_squares[findall(x -> x[1] < j, file_squares)[idx]+1:j-1])
     catch e
-        push!(PossibleDwarfMoves,file_squares[1:j-1])
+        push!(PossibleDwarfMoves, file_squares[1:j-1])
     end
 
 
@@ -209,17 +209,17 @@ function GetPossibleDwarfMoves(j, i, board)
     diagonal_squares = GetDiagonals(j, i, board)
     ### check for occupied diagonals
     diagonal_squares_occupied = [OccupiedSquare(a..., board) for a in diagonal_squares]
-    idxs = findall(x->x==1, diagonal_squares_occupied)
+    idxs = findall(x -> x == 1, diagonal_squares_occupied)
 
     ### 4 cases: 
     ### top left
-    idx = findall(x->x[1]<j && x[2]<i, diagonal_squares[idxs])
+    idx = findall(x -> x[1] < j && x[2] < i, diagonal_squares[idxs])
 
     try
-        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x-[j,i]) for x in diagonal_squares[idxs][idx]])]
+        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x - [j, i]) for x in diagonal_squares[idxs][idx]])]
         ### from diagonal_squares, delete this first occupied square and every square after (decreasing in both j and i until either j or i hits 1)
         while first_occupied_square[1] > 0 || first_occupied_square[2] > 0
-            filter!(x->x!=first_occupied_square,diagonal_squares)
+            filter!(x -> x != first_occupied_square, diagonal_squares)
             first_occupied_square[1] -= 1
             first_occupied_square[2] -= 1
         end
@@ -233,49 +233,49 @@ function GetPossibleDwarfMoves(j, i, board)
 
     ### top right
     diagonal_squares_occupied = [OccupiedSquare(a..., board) for a in diagonal_squares]
-    idxs = findall(x->x==1, diagonal_squares_occupied)
+    idxs = findall(x -> x == 1, diagonal_squares_occupied)
 
-    idx = findall(x->x[1]<j && x[2]>i, diagonal_squares[idxs])
+    idx = findall(x -> x[1] < j && x[2] > i, diagonal_squares[idxs])
 
     try
-        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x-[j,i]) for x in diagonal_squares[idxs][idx]])]
+        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x - [j, i]) for x in diagonal_squares[idxs][idx]])]
         ### from diagonal_squares, delete this first occupied square and every square after (decreasing in j and increasing in i until either j hits 1 or i hits 15)
         while first_occupied_square[1] > 0 || first_occupied_square[2] < 16
-            filter!(x->x!=first_occupied_square,diagonal_squares)
+            filter!(x -> x != first_occupied_square, diagonal_squares)
             first_occupied_square[1] -= 1
             first_occupied_square[2] += 1
         end
     catch e
     end
-    
+
     ### bottom right
     diagonal_squares_occupied = [OccupiedSquare(a..., board) for a in diagonal_squares]
-    idxs = findall(x->x==1, diagonal_squares_occupied)
+    idxs = findall(x -> x == 1, diagonal_squares_occupied)
 
-    idx = findall(x->x[1]>j && x[2]>i, diagonal_squares[idxs])
+    idx = findall(x -> x[1] > j && x[2] > i, diagonal_squares[idxs])
 
     try
-        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x-[j,i]) for x in diagonal_squares[idxs][idx]])]
+        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x - [j, i]) for x in diagonal_squares[idxs][idx]])]
         ### from diagonal_squares, delete this first occupied square and every square after (increasing in j and i until either j hits 15)
         while first_occupied_square[1] < 16 || first_occupied_square[2] < 16
-            filter!(x->x!=first_occupied_square,diagonal_squares)
+            filter!(x -> x != first_occupied_square, diagonal_squares)
             first_occupied_square[1] += 1
             first_occupied_square[2] += 1
         end
     catch e
-    end 
+    end
 
     ### bottom left
     diagonal_squares_occupied = [OccupiedSquare(a..., board) for a in diagonal_squares]
-    idxs = findall(x->x==1, diagonal_squares_occupied)
+    idxs = findall(x -> x == 1, diagonal_squares_occupied)
 
-    idx = findall(x->x[1]>j && x[2]<i, diagonal_squares[idxs])
+    idx = findall(x -> x[1] > j && x[2] < i, diagonal_squares[idxs])
 
     try
-        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x-[j,i]) for x in diagonal_squares[idxs][idx]])]
+        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x - [j, i]) for x in diagonal_squares[idxs][idx]])]
         ### from diagonal_squares, delete this first occupied square and every square after (increasing in j and decreasing in i until either j hits 15 or i hits 1)
         while first_occupied_square[1] < 16 || first_occupied_square[2] > 0
-            filter!(x->x!=first_occupied_square,diagonal_squares)
+            filter!(x -> x != first_occupied_square, diagonal_squares)
             first_occupied_square[1] += 1
             first_occupied_square[2] -= 1
         end
@@ -284,10 +284,10 @@ function GetPossibleDwarfMoves(j, i, board)
 
     ### push possible moves
     try
-        push!(PossibleDwarfMoves,diagonal_squares)
+        push!(PossibleDwarfMoves, diagonal_squares)
     catch e
         ### if no moves found, push empty vector
-        push!(PossibleDwarfMoves,[])
+        push!(PossibleDwarfMoves, [])
     end
 
     ### TODO sometimes a MethodError occurs here TODO TODO
@@ -297,40 +297,40 @@ function GetPossibleDwarfMoves(j, i, board)
 
     ### finally reduce to Vector{Int64}
     try
-        PossibleDwarfMoves = reduce(vcat,PossibleDwarfMoves)
+        PossibleDwarfMoves = reduce(vcat, PossibleDwarfMoves)
     catch e
     end
-    
+
     return PossibleDwarfMoves
 end
 
 ### j is row, i is column of selected troll in board matrix
 function GetPossibleTrollMoves(j, i, board)
-    
+
     ### start by getting square neighbours
     PossibleTrollMoves = GetSquareNeighbours(j, i, board)
 
     ### remove king / rock as possible move
     ### TODO make more general, i.e. remove piece that is labelled KING instead of specific position
-    filter!(x->x!=[8,8],PossibleTrollMoves)
+    filter!(x -> x != [8, 8], PossibleTrollMoves)
 
     ### remove possible moves which are OUTSIDE of board
     outside_idx = []
-    for (idx,n) in enumerate(PossibleTrollMoves)
+    for (idx, n) in enumerate(PossibleTrollMoves)
         if board[n...] == OUTSIDE
-            push!(outside_idx,idx)
+            push!(outside_idx, idx)
         end
     end
-    deleteat!(PossibleTrollMoves,outside_idx)
+    deleteat!(PossibleTrollMoves, outside_idx)
 
     ### filter out the occupied neighbours
     occupied_idx = []
-    for (idx,n) in enumerate(PossibleTrollMoves)
+    for (idx, n) in enumerate(PossibleTrollMoves)
         if board[n...] != EMPTY
-            push!(occupied_idx,idx)
+            push!(occupied_idx, idx)
         end
     end
-    deleteat!(PossibleTrollMoves,occupied_idx)
+    deleteat!(PossibleTrollMoves, occupied_idx)
 
     return PossibleTrollMoves
 end
@@ -341,10 +341,10 @@ end
 ### from and to are of form [j, i]
 function MoveDwarf(from, to, board)
     @assert board[from...] == DWARF
-    @assert to ∈ GetPossibleDwarfMoves(from[1],from[2],board)
+    @assert to ∈ GetPossibleDwarfMoves(from[1], from[2], board)
 
-    board[from[1],from[2]] = EMPTY
-    board[to[1],to[2]] = DWARF
+    board[from[1], from[2]] = EMPTY
+    board[to[1], to[2]] = DWARF
     return board
 end
 
@@ -352,10 +352,10 @@ end
 ### from and to are of form [j, i]
 function MoveTroll(from, to, board)
     @assert board[from...] == TROLL
-    @assert to ∈ GetPossibleTrollMoves(from[1],from[2],board)
+    @assert to ∈ GetPossibleTrollMoves(from[1], from[2], board)
 
-    board[from[1],from[2]] = EMPTY
-    board[to[1],to[2]] = TROLL
+    board[from[1], from[2]] = EMPTY
+    board[to[1], to[2]] = TROLL
     return board
 
     ### TODO after movement, troll has option to capture dwarves (should they always?)
@@ -373,17 +373,17 @@ end
 ### first checking they share either a rank, file or diagonal
 function GetNumberOfSpaces(from, to, board)
 
-    @assert to ∈ GetRank(from...,board) || to ∈ GetFile(from...,board) || to ∈ GetDiagonals(from...,board)
+    @assert to ∈ GetRank(from..., board) || to ∈ GetFile(from..., board) || to ∈ GetDiagonals(from..., board)
 
     ### same row
     if from[1] == to[1]
         return abs(from[2] - to[2]) - 1
 
-    ### same column
+        ### same column
     elseif from[2] == to[2]
         return abs(from[1] - to[1]) - 1
 
-    ### diagonal
+        ### diagonal
     else
         return abs(from[1] - to[1]) - 1
     end
@@ -391,7 +391,7 @@ end
 
 ### get the squares between 'from' and 'to', return them of form [ [from[1],from[2]],[j_1,i_1],[j_2,i_2],...,[to[1],to[2]] ]
 function GetSquaresBetween(from, to, board)
-    @assert to ∈ GetRank(from...,board) || to ∈ GetFile(from...,board) || to ∈ GetDiagonals(from...,board)
+    @assert to ∈ GetRank(from..., board) || to ∈ GetFile(from..., board) || to ∈ GetDiagonals(from..., board)
 
     ### same row
     if from[1] == to[1]
@@ -399,17 +399,17 @@ function GetSquaresBetween(from, to, board)
         if to[2] < from[2]
             step = -1
         end
-        return [ [from[1],k] for k in range(start=from[2],step=step,stop=to[2]) ]
+        return [[from[1], k] for k in range(start=from[2], step=step, stop=to[2])]
 
-    ### same column
+        ### same column
     elseif from[2] == to[2]
         step = 1
         if to[1] < from[1]
             step = -1
         end
-        return [ [k,from[2]] for k in range(start=from[1],step=step,stop=to[1]) ]
+        return [[k, from[2]] for k in range(start=from[1], step=step, stop=to[1])]
 
-    ### diagonal
+        ### diagonal
     else
         r1 = from[1]:to[1]
         r2 = from[2]:to[2]
@@ -422,14 +422,14 @@ function GetSquaresBetween(from, to, board)
             # @show collect(r2)
         end
 
-        return [[k,l] for (k,l) in zip(r1,r2)]
+        return [[k, l] for (k, l) in zip(r1, r2)]
     end
 end
 
 ### get squares on other side of [j,i] wrt 'to', same length (?) as GetNumberOfSpaces + 1
 ### includes square [j,i]
 function GetSquaresOtherSide(from, to, board)
-    
+
     sq_between = GetSquaresBetween(from, to, board)
 
     ### need to look this many squares behind [j,i]
@@ -444,9 +444,9 @@ function GetSquaresOtherSide(from, to, board)
             step = -1
         end
 
-        return [ [from[1], k] for k in range(start,step=step,length=search_length)]
+        return [[from[1], k] for k in range(start, step=step, length=search_length)]
 
-    ### same column
+        ### same column
     elseif from[2] == to[2]
 
         start = from[1]
@@ -455,9 +455,9 @@ function GetSquaresOtherSide(from, to, board)
             step = -1
         end
 
-        return [ [k, from[2]] for k in range(start,step=step,length=search_length) ]
+        return [[k, from[2]] for k in range(start, step=step, length=search_length)]
 
-    ### diagonal
+        ### diagonal
     else
 
         step1 = 1
@@ -470,10 +470,10 @@ function GetSquaresOtherSide(from, to, board)
             step2 = -1
         end
 
-        r1 = range(from[1],step=step1,length=search_length)
-        r2 = range(from[2],step=step2,length=search_length)
+        r1 = range(from[1], step=step1, length=search_length)
+        r2 = range(from[2], step=step2, length=search_length)
 
-        return [[k,l] for (k,l) in zip(r1,r2)]
+        return [[k, l] for (k, l) in zip(r1, r2)]
     end
 end
 
@@ -482,9 +482,9 @@ function GetPossibleDwarfHurls(j, i, board)
 
     ### make huge vector of 'possible' hurls in rank, file, and diagonals - nothing else off limits here!
     PossibleDwarfHurls = Vector{Vector{Int64}}[]
-    push!(PossibleDwarfHurls,GetRank(j, i, board))
-    push!(PossibleDwarfHurls,GetFile(j, i, board))
-    push!(PossibleDwarfHurls,GetDiagonals(j, i, board))
+    push!(PossibleDwarfHurls, GetRank(j, i, board))
+    push!(PossibleDwarfHurls, GetFile(j, i, board))
+    push!(PossibleDwarfHurls, GetDiagonals(j, i, board))
 
     ### TODO sometimes a MethodError occurs here TODO TODO
     ### not exactly below error, but something like it...
@@ -494,7 +494,7 @@ function GetPossibleDwarfHurls(j, i, board)
 
     ### reduce to Vector
     try
-        PossibleDwarfHurls = reduce(vcat,PossibleDwarfHurls)
+        PossibleDwarfHurls = reduce(vcat, PossibleDwarfHurls)
     catch e
     end
 
@@ -502,12 +502,12 @@ function GetPossibleDwarfHurls(j, i, board)
 
     ### first: dwarf MUST land on troll, all other options are impossible
     more_possible_idx = []
-    for (idx,n) in enumerate(PossibleDwarfHurls)
+    for (idx, n) in enumerate(PossibleDwarfHurls)
         # println(n)
         # println(board[n...] == TROLL)
         # println()
         if board[n...] == TROLL
-            push!(more_possible_idx,idx)
+            push!(more_possible_idx, idx)
         end
     end
 
@@ -523,18 +523,18 @@ function GetPossibleDwarfHurls(j, i, board)
     ### next: get squares between dwarf and target troll
     ### all in between squares MUST be EMPTY
     impossible_idx = []
-    for (idx,n) in enumerate(PossibleDwarfHurls)
-        path = GetSquaresBetween([j,i], n, board)
+    for (idx, n) in enumerate(PossibleDwarfHurls)
+        path = GetSquaresBetween([j, i], n, board)
 
         for p in path[2:end-1]
             if board[p...] != EMPTY
-                push!(impossible_idx,idx)
+                push!(impossible_idx, idx)
                 break
             end
         end
     end
 
-    deleteat!(PossibleDwarfHurls,impossible_idx)
+    deleteat!(PossibleDwarfHurls, impossible_idx)
 
     # @show PossibleDwarfHurls
 
@@ -545,24 +545,24 @@ function GetPossibleDwarfHurls(j, i, board)
 
     ### finally: dwarf must have enough neighbours in row to hurl across space
     impossible_idx = []
-    for (idx,n) in enumerate(PossibleDwarfHurls)
-        path = GetSquaresOtherSide([j,i], n, board)
+    for (idx, n) in enumerate(PossibleDwarfHurls)
+        path = GetSquaresOtherSide([j, i], n, board)
 
         for p in path
             try
                 if board[p...] != DWARF
-                    push!(impossible_idx,idx)
+                    push!(impossible_idx, idx)
                     break
                 end
             catch e
                 # println("error here, but code may be working as intended")
-                push!(impossible_idx,idx)
+                push!(impossible_idx, idx)
                 break
             end
         end
     end
 
-    deleteat!(PossibleDwarfHurls,impossible_idx)
+    deleteat!(PossibleDwarfHurls, impossible_idx)
 
     return PossibleDwarfHurls
 end
@@ -571,9 +571,9 @@ function GetPossibleTrollShoves(j, i, board)
 
     ### make huge vector of 'possible' shoves in rank, file, and diagonals - nothing else off limits here!
     PossibleTrollShoves = Vector{Vector{Int64}}[]
-    push!(PossibleTrollShoves,GetRank(j, i, board))
-    push!(PossibleTrollShoves,GetFile(j, i, board))
-    push!(PossibleTrollShoves,GetDiagonals(j, i, board))
+    push!(PossibleTrollShoves, GetRank(j, i, board))
+    push!(PossibleTrollShoves, GetFile(j, i, board))
+    push!(PossibleTrollShoves, GetDiagonals(j, i, board))
 
     ### TODO sometimes a MethodError occurs here TODO TODO
     ### not exactly below error, but something like it...
@@ -583,7 +583,7 @@ function GetPossibleTrollShoves(j, i, board)
 
     ### reduce to Vector
     try
-        PossibleTrollShoves = reduce(vcat,PossibleTrollShoves)
+        PossibleTrollShoves = reduce(vcat, PossibleTrollShoves)
     catch e
     end
 
@@ -591,12 +591,12 @@ function GetPossibleTrollShoves(j, i, board)
 
     ### first: troll MUST land NEXT TO at least one dwarf (and NOT ON a dwarf), all other options are impossible
     more_possible_idx = []
-    for (idx,n) in enumerate(PossibleTrollShoves)
+    for (idx, n) in enumerate(PossibleTrollShoves)
         if board[n...] == EMPTY
             neighbours = GetSquareNeighbours(n..., board)
             for n_ in neighbours
                 if board[n_...] == DWARF
-                    push!(more_possible_idx,idx)
+                    push!(more_possible_idx, idx)
                     break
                 end
             end
@@ -615,18 +615,18 @@ function GetPossibleTrollShoves(j, i, board)
     ### next: get squares between troll and target dwarf
     ### all in between squares MUST be EMPTY
     impossible_idx = []
-    for (idx,n) in enumerate(PossibleTrollShoves)
-        path = GetSquaresBetween([j,i], n, board)
+    for (idx, n) in enumerate(PossibleTrollShoves)
+        path = GetSquaresBetween([j, i], n, board)
 
         for p in path[2:end-1]
             if board[p...] != EMPTY
-                push!(impossible_idx,idx)
+                push!(impossible_idx, idx)
                 break
             end
         end
     end
 
-    deleteat!(PossibleTrollShoves,impossible_idx)
+    deleteat!(PossibleTrollShoves, impossible_idx)
 
     # @show PossibleTrollShoves
 
@@ -637,27 +637,27 @@ function GetPossibleTrollShoves(j, i, board)
 
     ### finally: troll must have enough neighbours in row to shove across space
     impossible_idx = []
-    for (idx,n) in enumerate(PossibleTrollShoves)
-        path = GetSquaresOtherSide([j,i], n, board)
+    for (idx, n) in enumerate(PossibleTrollShoves)
+        path = GetSquaresOtherSide([j, i], n, board)
 
         for p in path
             try
                 if board[p...] != TROLL
-                    push!(impossible_idx,idx)
+                    push!(impossible_idx, idx)
                     break
                 end
             catch e
                 # println("error here, but code may be working as intended")
-                push!(impossible_idx,idx)
+                push!(impossible_idx, idx)
                 break
             end
         end
     end
 
-    deleteat!(PossibleTrollShoves,impossible_idx)
+    deleteat!(PossibleTrollShoves, impossible_idx)
 
     return PossibleTrollShoves
-    
+
 end
 
 ### dwarf capture move
@@ -666,10 +666,10 @@ end
 ### from and to are of form [j, i]
 function HurlDwarf(from, to, board)
     @assert board[from...] == DWARF
-    @assert to ∈ GetPossibleDwarfHurls(from[1],from[2],board)
+    @assert to ∈ GetPossibleDwarfHurls(from[1], from[2], board)
 
-    board[from[1],from[2]] = EMPTY
-    board[to[1],to[2]] = DWARF
+    board[from[1], from[2]] = EMPTY
+    board[to[1], to[2]] = DWARF
     return board
 
 end
@@ -682,10 +682,10 @@ end
 ### from and to are of form [j, i]
 function ShoveTroll(from, to, board)
     @assert board[from...] == TROLL
-    @assert to ∈ GetPossibleTrollShoves(from[1],from[2],board)
+    @assert to ∈ GetPossibleTrollShoves(from[1], from[2], board)
 
-    board[from[1],from[2]] = EMPTY
-    board[to[1],to[2]] = TROLL
+    board[from[1], from[2]] = EMPTY
+    board[to[1], to[2]] = TROLL
 
     ### currently choosing to always capture surrounding dwarves after movement
     neighbours = GetSquareNeighbours(to[1], to[2], board)
@@ -706,17 +706,17 @@ end
 ### CC is either Mv for move, Hu for Hurl (dwarves only), Sh for Shove (trolls only)
 ### DD is target square for chosen movement CC
 ### returns board
-function MoveFromString!(board,move_string)
+function MoveFromString!(board, move_string)
 
     ### first split move string into constituent parts
-    piece, from_string, move_type, to_string = split(move_string,"-")
+    piece, from_string, move_type, to_string = split(move_string, "-")
 
     # ### either "Dw" or "Tr"
     # piece = move_string[1:2]
 
     ### get 'from' and 'to' from 3rd, 4th, 7th, and 8th characters of move_string
-    from = [parse(Int,from_string[2:end]),findfirst(x->x==string(from_string[1]),files)]
-    to = [parse(Int,to_string[2:end]),findfirst(x->x==string(to_string[1]),files)]
+    from = [parse(Int, from_string[2:end]), findfirst(x -> x == string(from_string[1]), files)]
+    to = [parse(Int, to_string[2:end]), findfirst(x -> x == string(to_string[1]), files)]
 
     # ### either "Mv", "Hu" or "Sh" for move, hurl or shove
     # move_type = move_string[5:6]
@@ -746,8 +746,8 @@ function GetDwarfPositions(board)
     DwarfPositions = []
     for row in 1:15
         for col in 1:15
-            if board[row,col] == DWARF
-                push!(DwarfPositions,[row,col])
+            if board[row, col] == DWARF
+                push!(DwarfPositions, [row, col])
             end
         end
     end
@@ -758,8 +758,8 @@ function GetTrollPositions(board)
     TrollPositions = []
     for row in 1:15
         for col in 1:15
-            if board[row,col] == TROLL
-                push!(TrollPositions,[row,col])
+            if board[row, col] == TROLL
+                push!(TrollPositions, [row, col])
             end
         end
     end
@@ -768,7 +768,7 @@ end
 
 ### returns three lists: current positions, candidate move positions and candidate capture positions
 function GetAllPossibleMoves(board, PLAYER_TURN)
-    
+
     if PLAYER_TURN
         ### dwarves move
         @assert CountDwarves(board) > 0
@@ -785,7 +785,7 @@ function GetAllPossibleMoves(board, PLAYER_TURN)
         end
         ### ...and hurls
         for pos in DwarfPositions
-            push!(Hurls, GetPossibleDwarfHurls(pos[1], pos[2] ,board))
+            push!(Hurls, GetPossibleDwarfHurls(pos[1], pos[2], board))
         end
 
         # ### collect both together
@@ -826,7 +826,7 @@ end
 
 ### assumes turn variable is correct! TODO fix
 function MoveStringFromBoard(initial_pos, final_pos, dwarf_turn)
-    
+
     a = ""
     if dwarf_turn[]
         a = "Dw"
@@ -858,13 +858,13 @@ end
 ### TODO finish
 function CollectAllStrings(board, PLAYER_TURN)
 
-    a,b,c = GetAllPossibleMoves(board, PLAYER_TURN)
+    a, b, c = GetAllPossibleMoves(board, PLAYER_TURN)
 
     all_strings = []
     for i in eachindex(a)
 
-        push!(all_strings, [MoveStringFromBoard(a[i],j,PLAYER_TURN) for j in b[i]])
-        push!(all_strings, [CaptureStringFromBoard(a[i],j,PLAYER_TURN) for j in c[i]])
+        push!(all_strings, [MoveStringFromBoard(a[i], j, PLAYER_TURN) for j in b[i]])
+        push!(all_strings, [CaptureStringFromBoard(a[i], j, PLAYER_TURN) for j in c[i]])
 
     end
 
@@ -895,26 +895,26 @@ function StartPositions!(board)
     board .= EMPTY
 
     ### set outside of board
-    board[1,1:5] .= OUTSIDE
-    board[1,11:15] .= OUTSIDE
-    board[15,1:5] .= OUTSIDE
-    board[15,11:15] .= OUTSIDE
-    board[2,1:4] .= OUTSIDE
-    board[2,12:15] .= OUTSIDE
-    board[14,1:4] .= OUTSIDE
-    board[14,12:15] .= OUTSIDE
-    board[3,1:3] .= OUTSIDE
-    board[3,13:15] .= OUTSIDE
-    board[13,1:3] .= OUTSIDE
-    board[13,13:15] .= OUTSIDE
-    board[4,1:2] .= OUTSIDE
-    board[4,14:15] .= OUTSIDE
-    board[12,1:2] .= OUTSIDE
-    board[12,14:15] .= OUTSIDE
-    board[5,1:1] .= OUTSIDE
-    board[5,15:15] .= OUTSIDE
-    board[11,1:1] .= OUTSIDE
-    board[11,15:15] .= OUTSIDE
+    board[1, 1:5] .= OUTSIDE
+    board[1, 11:15] .= OUTSIDE
+    board[15, 1:5] .= OUTSIDE
+    board[15, 11:15] .= OUTSIDE
+    board[2, 1:4] .= OUTSIDE
+    board[2, 12:15] .= OUTSIDE
+    board[14, 1:4] .= OUTSIDE
+    board[14, 12:15] .= OUTSIDE
+    board[3, 1:3] .= OUTSIDE
+    board[3, 13:15] .= OUTSIDE
+    board[13, 1:3] .= OUTSIDE
+    board[13, 13:15] .= OUTSIDE
+    board[4, 1:2] .= OUTSIDE
+    board[4, 14:15] .= OUTSIDE
+    board[12, 1:2] .= OUTSIDE
+    board[12, 14:15] .= OUTSIDE
+    board[5, 1:1] .= OUTSIDE
+    board[5, 15:15] .= OUTSIDE
+    board[11, 1:1] .= OUTSIDE
+    board[11, 15:15] .= OUTSIDE
 
     ### set king
     board[8, 8] = KING
@@ -958,38 +958,38 @@ function StartPositions!(board)
     board[13, 12] = DWARF
     board[14, 5] = DWARF
     board[14, 11] = DWARF
-    board[end,6] = DWARF
-    board[end,7] = DWARF
-    board[end,9] = DWARF
-    board[end,10] = DWARF
+    board[end, 6] = DWARF
+    board[end, 7] = DWARF
+    board[end, 9] = DWARF
+    board[end, 10] = DWARF
 end
 
 function TestHurlBoard!(board)
-    
+
     ### set entire board to empty
     board .= EMPTY
 
     ### set outside of board
-    board[1,1:5] .= OUTSIDE
-    board[1,11:15] .= OUTSIDE
-    board[15,1:5] .= OUTSIDE
-    board[15,11:15] .= OUTSIDE
-    board[2,1:4] .= OUTSIDE
-    board[2,12:15] .= OUTSIDE
-    board[14,1:4] .= OUTSIDE
-    board[14,12:15] .= OUTSIDE
-    board[3,1:3] .= OUTSIDE
-    board[3,13:15] .= OUTSIDE
-    board[13,1:3] .= OUTSIDE
-    board[13,13:15] .= OUTSIDE
-    board[4,1:2] .= OUTSIDE
-    board[4,14:15] .= OUTSIDE
-    board[12,1:2] .= OUTSIDE
-    board[12,14:15] .= OUTSIDE
-    board[5,1:1] .= OUTSIDE
-    board[5,15:15] .= OUTSIDE
-    board[11,1:1] .= OUTSIDE
-    board[11,15:15] .= OUTSIDE
+    board[1, 1:5] .= OUTSIDE
+    board[1, 11:15] .= OUTSIDE
+    board[15, 1:5] .= OUTSIDE
+    board[15, 11:15] .= OUTSIDE
+    board[2, 1:4] .= OUTSIDE
+    board[2, 12:15] .= OUTSIDE
+    board[14, 1:4] .= OUTSIDE
+    board[14, 12:15] .= OUTSIDE
+    board[3, 1:3] .= OUTSIDE
+    board[3, 13:15] .= OUTSIDE
+    board[13, 1:3] .= OUTSIDE
+    board[13, 13:15] .= OUTSIDE
+    board[4, 1:2] .= OUTSIDE
+    board[4, 14:15] .= OUTSIDE
+    board[12, 1:2] .= OUTSIDE
+    board[12, 14:15] .= OUTSIDE
+    board[5, 1:1] .= OUTSIDE
+    board[5, 15:15] .= OUTSIDE
+    board[11, 1:1] .= OUTSIDE
+    board[11, 15:15] .= OUTSIDE
 
     ### set king
     board[8, 8] = KING
@@ -1020,26 +1020,26 @@ function TestShoveBoard!(board)
     board .= EMPTY
 
     ### set outside of board
-    board[1,1:5] .= OUTSIDE
-    board[1,11:15] .= OUTSIDE
-    board[15,1:5] .= OUTSIDE
-    board[15,11:15] .= OUTSIDE
-    board[2,1:4] .= OUTSIDE
-    board[2,12:15] .= OUTSIDE
-    board[14,1:4] .= OUTSIDE
-    board[14,12:15] .= OUTSIDE
-    board[3,1:3] .= OUTSIDE
-    board[3,13:15] .= OUTSIDE
-    board[13,1:3] .= OUTSIDE
-    board[13,13:15] .= OUTSIDE
-    board[4,1:2] .= OUTSIDE
-    board[4,14:15] .= OUTSIDE
-    board[12,1:2] .= OUTSIDE
-    board[12,14:15] .= OUTSIDE
-    board[5,1:1] .= OUTSIDE
-    board[5,15:15] .= OUTSIDE
-    board[11,1:1] .= OUTSIDE
-    board[11,15:15] .= OUTSIDE
+    board[1, 1:5] .= OUTSIDE
+    board[1, 11:15] .= OUTSIDE
+    board[15, 1:5] .= OUTSIDE
+    board[15, 11:15] .= OUTSIDE
+    board[2, 1:4] .= OUTSIDE
+    board[2, 12:15] .= OUTSIDE
+    board[14, 1:4] .= OUTSIDE
+    board[14, 12:15] .= OUTSIDE
+    board[3, 1:3] .= OUTSIDE
+    board[3, 13:15] .= OUTSIDE
+    board[13, 1:3] .= OUTSIDE
+    board[13, 13:15] .= OUTSIDE
+    board[4, 1:2] .= OUTSIDE
+    board[4, 14:15] .= OUTSIDE
+    board[12, 1:2] .= OUTSIDE
+    board[12, 14:15] .= OUTSIDE
+    board[5, 1:1] .= OUTSIDE
+    board[5, 15:15] .= OUTSIDE
+    board[11, 1:1] .= OUTSIDE
+    board[11, 15:15] .= OUTSIDE
 
     ### set king
     board[8, 8] = KING
@@ -1106,20 +1106,20 @@ function UndoMove!(board, move_tracker, dwarf_turn)
     dwarf_turn[] = !dwarf_turn[]
 
     return
-    
+
 end
 
 function GetRandomMove(board, PLAYER_TURN)
     if PLAYER_TURN
-        p,m,c = GetAllPossibleMoves(board, PLAYER_TURN)
+        p, m, c = GetAllPossibleMoves(board, PLAYER_TURN)
     else
-        p,m,c = GetAllPossibleMoves(board, !PLAYER_TURN)
+        p, m, c = GetAllPossibleMoves(board, !PLAYER_TURN)
     end
 
-    
+
 
 end
 
 function GetBestMove(depth, board)
-    
+
 end

@@ -14,12 +14,12 @@ includet("src/THUD.jl")
 using .THUD
 
 ### activate glmakie backend to change title of plotting window
-GLMakie.activate!( title = "THUD" )
+GLMakie.activate!(title="THUD")
 
 ### initialize some global variables
-pieces = [tuple('D', :white), tuple('R', :black), tuple('T',:grey)]
+pieces = [tuple('D', :white), tuple('R', :black), tuple('T', :grey)]
 click_mode = Ref(:normal)
-selected_square = Ref{Point{2, Int64}}()
+selected_square = Ref{Point{2,Int64}}()
 dwarf_turn = Ref(true)
 
 ### some plotting variables for updating makie plotted board
@@ -36,8 +36,8 @@ num_trolls_tracker = []
 
 # Initialize makie figure and axis
 f = Figure()
-ax = Axis(f[1, 1], aspect = 1)
-hidedecorations!(ax)
+ax = Axis(f[1, 1], aspect=1, xticks=(1:15, files), yticks=(1:15, ranks), xgridvisible = false, ygridvisible = false)
+# hidedecorations!(ax)
 
 # Initialize Thud board
 board = MakeEmptyBoard(BOARD_SIZE)
@@ -49,7 +49,7 @@ AddLinesToHeatmap!(ax)
 AddPiecesToHeatmapGrid!(ax, board, pieces)
 for int in keys(interactions(ax))
     deactivate_interaction!(ax, int)
-end 
+end
 mevents = addmouseevents!(ax.scene, hm)
 
 ### add mouse behaviour & link to game logic
@@ -81,9 +81,9 @@ onmouseleftclick(mevents) do event
 
     elseif click_mode[] == :await_move && dwarf_turn[]
 
-        if [square[2],square[1]] ∈ GetPossibleDwarfMoves(selected_square.x[2],selected_square.x[1],board)
+        if [square[2], square[1]] ∈ GetPossibleDwarfMoves(selected_square.x[2], selected_square.x[1], board)
 
-            move_string = MoveStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],dwarf_turn[])
+            move_string = MoveStringFromBoard([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], dwarf_turn[])
 
             ### perform the dwarf move
             MoveDwarf([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
@@ -93,12 +93,10 @@ onmouseleftclick(mevents) do event
 
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
 
-            @show number_turns
-            
 
-        elseif [square[2],square[1]] ∈ GetPossibleDwarfHurls(selected_square.x[2],selected_square.x[1],board)
+        elseif [square[2], square[1]] ∈ GetPossibleDwarfHurls(selected_square.x[2], selected_square.x[1], board)
 
-            move_string = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],dwarf_turn[])
+            move_string = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], dwarf_turn[])
 
             # Perform the capture
             ### check this func call
@@ -109,8 +107,6 @@ onmouseleftclick(mevents) do event
 
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
 
-            @show number_turns
-            
         else
             # println("Invalid move or capture selected.")
 
@@ -135,9 +131,9 @@ onmouseleftclick(mevents) do event
     elseif click_mode[] == :await_move && !dwarf_turn[]
 
         ### troll capture must go first here! 
-        if [square[2],square[1]] ∈ GetPossibleTrollShoves(selected_square.x[2],selected_square.x[1],board)
+        if [square[2], square[1]] ∈ GetPossibleTrollShoves(selected_square.x[2], selected_square.x[1], board)
 
-            move_string = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],dwarf_turn[])
+            move_string = CaptureStringFromBoard([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], dwarf_turn[])
 
             ### Perform the capture
             ShoveTroll([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
@@ -147,12 +143,10 @@ onmouseleftclick(mevents) do event
 
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
 
-            @show number_turns
-            
 
-        elseif [square[2],square[1]] ∈ GetPossibleTrollMoves(selected_square.x[2],selected_square.x[1],board)
+        elseif [square[2], square[1]] ∈ GetPossibleTrollMoves(selected_square.x[2], selected_square.x[1], board)
 
-            move_string = MoveStringFromBoard([selected_square.x[2], selected_square.x[1]],[square[2], square[1]],dwarf_turn[])
+            move_string = MoveStringFromBoard([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], dwarf_turn[])
 
             ### Perform the move
             MoveTroll([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
@@ -162,9 +156,7 @@ onmouseleftclick(mevents) do event
 
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
 
-            @show number_turns
 
-            
         else
             # println("Invalid move or capture selected.")
 
@@ -187,7 +179,7 @@ onmouseleftclick(mevents) do event
     end
 
     return
-    
+
 end
 
 ### display & play

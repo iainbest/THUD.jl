@@ -50,7 +50,7 @@ num_trolls_tracker = []
 #     @assert move_string ∈ all_strings
 
 #     # @show findfirst(x->x==move_string, all_strings)
-    
+
 #     MoveFromString!(board, move_string)
 
 #     UpdateTrackers(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)

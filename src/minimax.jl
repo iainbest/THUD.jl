@@ -7,12 +7,12 @@ function minimaxRoot(depth, board, turn, board_tracker, maximise_dwarves)
     @show length(moves)
     BestMove = -Inf
     BestMoveFound = nothing
-    
+
     for i in eachindex(moves)
 
         MoveFromString(board, moves[i])
 
-        val = minimax(depth-1, board, turn, board_tracker, -Inf, Inf, !maximise_dwarves)
+        val = minimax(depth - 1, board, turn, board_tracker, -Inf, Inf, !maximise_dwarves)
 
         board = board_tracker[end]
         # UndoMove(board, board_tracker)
@@ -47,7 +47,7 @@ function minimax(depth, board, turn, board_tracker, alpha, beta, maximise_dwarve
 
             MoveFromString(board, moves[i])
 
-            BestMove = maximum(BestMove, minimax(depth-1, board, turn, board_tracker, alpha, beta, !maximise_dwarves))
+            BestMove = maximum(BestMove, minimax(depth - 1, board, turn, board_tracker, alpha, beta, !maximise_dwarves))
 
             board = board_tracker[end]
             # UndoMove(board, board_tracker)
@@ -74,7 +74,7 @@ function minimax(depth, board, turn, board_tracker, alpha, beta, maximise_dwarve
 
             MoveFromString(board, moves[i])
 
-            BestMove = minimum(BestMove,minimax(depth-1, board, turn, board_tracker, alpha, beta, !maximise_dwarves))
+            BestMove = minimum(BestMove, minimax(depth - 1, board, turn, board_tracker, alpha, beta, !maximise_dwarves))
 
             board = board_tracker[end]
             # UndoMove(board, board_tracker)
