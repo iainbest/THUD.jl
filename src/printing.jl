@@ -24,10 +24,8 @@ function print_board(board)
 end
 
 
+function SetUpHeatMapGrid(ax)
 
-### actually print board in nice way
-### TODO add lines between squares
-function PrintBoard(board,ranks=reverse(ranks), files=files)
     x=1:15
     y=1:15
     z = zeros(15,15)
@@ -63,65 +61,121 @@ function PrintBoard(board,ranks=reverse(ranks), files=files)
     z[11,1:1] .= NaN
     z[11,15:15] .= NaN
 
-    ### plot grid
-    p1 = heatmap(x,y,z,cbar=false,xticks = (x,files),yticks = (y,ranks),colour=[:grey,:white],grid=false,size=(1000,1000));
+    hm = heatmap!(ax,x,y,Observable(z),colormap=[:grey,:white]);
+    ## cbar=false,xticks = (x,files),yticks = (y,ranks)
+    
+    return hm
+end
+
+function AddLinesToHeatmap!(ax)
     ### lines for edge of board
-    plot!(p1,[0.5,5.5],[5.5,0.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[0.5,0.5],[5.5,10.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[0.5,5.5],[10.5,15.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[5.5,10.5],[15.5,15.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[5.5,10.5],[0.5,0.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[10.5,15.5],[0.5,5.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[15.5,15.5],[5.5,10.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[10.5,15.5],[15.5,10.5],lw=1.5,colour=:black,label="")
+    lines!(ax,[0.5,5.5],[5.5,0.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[0.5,0.5],[5.5,10.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[0.5,5.5],[10.5,15.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[5.5,10.5],[15.5,15.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[5.5,10.5],[0.5,0.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[10.5,15.5],[0.5,5.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[15.5,15.5],[5.5,10.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[10.5,15.5],[15.5,10.5],color=:black,label="", linewidth = 1)
 
     ### vertical lines between squares
-    plot!(p1,[1.5,1.5],[4.5,11.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[2.5,2.5],[3.5,12.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[3.5,3.5],[2.5,13.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[4.5,4.5],[1.5,14.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[5.5,5.5],[0.5,15.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[6.5,6.5],[0.5,15.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[7.5,7.5],[0.5,15.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[8.5,8.5],[0.5,15.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[9.5,9.5],[0.5,15.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[10.5,10.5],[0.5,15.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[11.5,11.5],[1.5,14.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[12.5,12.5],[2.5,13.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[13.5,13.5],[3.5,12.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[14.5,14.5],[4.5,11.5],lw=1.5,colour=:black,label="")
+    lines!(ax,[1.5,1.5],[4.5,11.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[2.5,2.5],[3.5,12.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[3.5,3.5],[2.5,13.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[4.5,4.5],[1.5,14.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[5.5,5.5],[0.5,15.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[6.5,6.5],[0.5,15.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[7.5,7.5],[0.5,15.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[8.5,8.5],[0.5,15.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[9.5,9.5],[0.5,15.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[10.5,10.5],[0.5,15.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[11.5,11.5],[1.5,14.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[12.5,12.5],[2.5,13.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[13.5,13.5],[3.5,12.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[14.5,14.5],[4.5,11.5],color=:black,label="", linewidth = 1)
 
     ### horizontal lines between squares
-    plot!(p1,[4.5,11.5],[1.5,1.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[3.5,12.5],[2.5,2.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[2.5,13.5],[3.5,3.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[1.5,14.5],[4.5,4.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[0.5,15.5],[5.5,5.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[0.5,15.5],[6.5,6.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[0.5,15.5],[7.5,7.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[0.5,15.5],[8.5,8.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[0.5,15.5],[9.5,9.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[0.5,15.5],[10.5,10.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[1.5,14.5],[11.5,11.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[2.5,13.5],[12.5,12.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[3.5,12.5],[13.5,13.5],lw=1.5,colour=:black,label="")
-    plot!(p1,[4.5,11.5],[14.5,14.5],lw=1.5,colour=:black,label="")
+    lines!(ax,[4.5,11.5],[1.5,1.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[3.5,12.5],[2.5,2.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[2.5,13.5],[3.5,3.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[1.5,14.5],[4.5,4.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[0.5,15.5],[5.5,5.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[0.5,15.5],[6.5,6.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[0.5,15.5],[7.5,7.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[0.5,15.5],[8.5,8.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[0.5,15.5],[9.5,9.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[0.5,15.5],[10.5,10.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[1.5,14.5],[11.5,11.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[2.5,13.5],[12.5,12.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[3.5,12.5],[13.5,13.5],color=:black,label="", linewidth = 1)
+    lines!(ax,[4.5,11.5],[14.5,14.5],color=:black,label="", linewidth = 1)
+end
 
+function AddPiecesToHeatmapGrid!(ax,board,pieces)
     ### add pieces to board
-    for column in 1:15
-        row = reverse(board[:,column])
+    for column in reverse(1:15)
+        row = board[:,column]
         for (idx,r) in enumerate(row)
             if r == 3
-                annotate!(p1,column,[idx],"R")
+                sq = Point(column,idx)
+                (marker, color) = pieces[2][1], pieces[2][2]
+
+                push!(piece_scatters[], scatter!(ax, sq; marker, color,
+                                                    strokecolor = color === :white ? :grey : :white,
+                                                    strokewidth = 1,
+                                                    markersize = 0.8, markerspace = :data
+                                                )
+                )
+
+                # annotate!(ax,column,[idx],"R")
             elseif r == 2
-                annotate!(p1,column,[idx],"T")
+                sq = Point(column,idx)
+                (marker, color) = pieces[3][1], pieces[3][2]
+                push!(piece_scatters[], scatter!(ax, sq; marker, color,
+                                                    strokecolor = color === :white ? :grey : :white,
+                                                    strokewidth = 1,
+                                                    markersize = 0.8, markerspace = :data
+                                                )
+                )
+
+                # annotate!(ax,column,[idx],"T")
             elseif r == 1
-                annotate!(p1,column,[idx],"D")
+                sq = Point(column,idx)
+                (marker, color) = pieces[1][1], pieces[1][2]
+                push!(piece_scatters[], scatter!(ax, sq; marker, color,
+                                                    strokecolor = color === :white ? :grey : :white,
+                                                    strokewidth = 1,
+                                                    markersize = 0.8, markerspace = :data
+                                                )
+                )
+
+                # annotate!(ax,column,[idx],"D")
             end
         end
     end
-    # savefig(p1,"p1.png")
+end
 
-    display(p1)
+function ReplacePieces!(ax, piece_scatters, board, pieces)
+    ### clear / fix plot by removing and re-placing pieces
+    for sc in piece_scatters[]; delete!(ax, sc); end
+    empty!(piece_scatters[])
+    AddPiecesToHeatmapGrid!(ax,board,pieces)
+end
 
+function ShowHighlights!(ax, move_scatters, capture_scatters, moves, captures)
+
+    for move in moves
+        push!(move_scatters[], scatter!(ax, move[2], move[1]; marker='o', color=:blue, markersize=0.5, markerspace=:data))
+    end
+    for capture in captures
+        push!(capture_scatters[], scatter!(ax, capture[2], capture[1]; marker='x', color=:red, markersize=0.5, markerspace=:data))
+    end
+    
+end
+
+function ClearHighlights!(ax, move_scatters, capture_scatters)
+    for sc in move_scatters[]; delete!(ax, sc); end
+    empty!(move_scatters[])
+    for sc in capture_scatters[]; delete!(ax, sc); end
+    empty!(capture_scatters[])
 end
