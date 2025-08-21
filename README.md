@@ -21,6 +21,9 @@ some notes:
 
 
 ### TODO:
+#### 'urgent'
+- add trackers to new play.jl
+
 #### Misc
 - ~~undo move function?~~ - Done, check this still works
 - compartmentalise / tidy up existing codebase!
@@ -31,6 +34,7 @@ some notes:
 - ~~highlight possible moves based on query square (highlight possible moves and captures in different colours)~~ - Done, can edit visuals later
 - change glmakie window icon (see [here](https://discourse.julialang.org/t/change-window-icon-in-glmakie/93517))
 - go from board / matrix representation to string move representation (reverse is implemented) - Maybe done, check etc.
+
   
 #### Engines
 - simple engine (random moves)
