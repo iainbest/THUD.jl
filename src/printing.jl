@@ -8,7 +8,7 @@
 
 # Function to print board in repl
 function print_board(board)
-    for i in 1:BOARD_SIZE
+    for i in reverse(1:BOARD_SIZE)
         row = board[i, :]
         for j in 1:BOARD_SIZE
             if row[j] == OUTSIDE
@@ -198,9 +198,9 @@ function ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num
 
     text!(ax2, 0, 0.5, text = "Turn number : $(number_turns[])", align = (:center, :center))
     text!(ax2, 0, 0.25, text = "Previous move: $(!isempty(move_tracker) ? move_tracker[end] : "---")", align = (:center, :center))
-    text!(ax2, 0, 0, text = "Evaluation: $(!isempty(eval_tracker) ? eval_tracker[end] : "---")", align = (:center, :center))
-    text!(ax2, 0, -0.25, text = "$(!isempty(num_dwarves_tracker) ? num_dwarves_tracker[end] : "---")", align = (:center, :center))
-    text!(ax2, 0, -0.5, text = "$(!isempty(num_trolls_tracker) ? num_trolls_tracker[end] : "---")", align = (:center, :center))
+    text!(ax2, 0, 0, text = "Evaluation: $(!isempty(eval_tracker) ? round(eval_tracker[end],digits=3) : "---")", align = (:center, :center))
+    text!(ax2, 0, -0.25, text = "Num Dwarves: $(!isempty(num_dwarves_tracker) ? num_dwarves_tracker[end] : "---")", align = (:center, :center))
+    text!(ax2, 0, -0.5, text = "Num Trolls: $(!isempty(num_trolls_tracker) ? num_trolls_tracker[end] : "---")", align = (:center, :center))
 
     
 

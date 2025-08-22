@@ -11,5 +11,8 @@ includet("extrafunctions.jl")
 includet("evaluation.jl")
 includet("printing.jl")
 includet("minimax.jl")
+includet("strings.jl")
+includet("movement.jl")
+includet("engines.jl")
 
 end
