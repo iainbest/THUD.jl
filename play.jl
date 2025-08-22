@@ -22,7 +22,7 @@ click_mode = Ref(:normal)
 selected_square = Ref{Point{2,Int64}}()
 dwarf_turn = Ref(true)
 
-PLAYER_TURN = true
+PLAYER_TURN = Ref(true)
 ### Choose engine here
 engine = RandomEngine()
 # engine = MinimaxEngine(2, true) # depth 2, use alpha-beta pruning
@@ -98,7 +98,7 @@ onmouseleftclick(mevents) do event
     square = round.(Int, event.data)
 
     ### if dwarf turn and dwarf is selected
-    if PLAYER_TURN && dwarf_turn[] && click_mode[] == :normal && board[square[2], square[1]] == 1
+    if PLAYER_TURN[] && dwarf_turn[] && click_mode[] == :normal && board[square[2], square[1]] == 1
 
         ### get possible dwarf moves 
         moves = GetPossibleDwarfMoves(square[2], square[1], board)
@@ -110,7 +110,7 @@ onmouseleftclick(mevents) do event
         selected_square[] = square
 
     ### if troll turn and troll is selected
-    elseif PLAYER_TURN && !dwarf_turn[] && click_mode[] == :normal && board[square[2], square[1]] == 2
+    elseif PLAYER_TURN[] && !dwarf_turn[] && click_mode[] == :normal && board[square[2], square[1]] == 2
 
         ### get possible troll moves 
         moves = GetPossibleTrollMoves(square[2], square[1], board)
@@ -122,7 +122,7 @@ onmouseleftclick(mevents) do event
         selected_square[] = square
 
     ### if dwarf turn and dwarf is selected 
-    elseif PLAYER_TURN && dwarf_turn[] && click_mode[] == :await_move
+    elseif PLAYER_TURN[] && dwarf_turn[] && click_mode[] == :await_move
 
         if [square[2], square[1]] ∈ GetPossibleDwarfMoves(selected_square.x[2], selected_square.x[1], board)
 
@@ -137,6 +137,29 @@ onmouseleftclick(mevents) do event
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
 
             ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
+            ### now get engine move
+            ### turn off below if you want to play both sides!
+            ###################################################################################################################################################
+            PLAYER_TURN[] = false
+            dwarf_turn[] = !dwarf_turn[]
+            ### engine move
+            if !PLAYER_TURN[]
+                println("Engine thinking...")
+                move = GetEngineMove(engine, board)
+                println(move)
+
+                MoveFromString!(board, move)
+
+                ReplacePieces!(ax, piece_scatters, board, pieces)
+
+                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+                ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
+            end
+            PLAYER_TURN[] = true
+            ###################################################################################################################################################
 
 
         elseif [square[2], square[1]] ∈ GetPossibleDwarfHurls(selected_square.x[2], selected_square.x[1], board)
@@ -153,6 +176,29 @@ onmouseleftclick(mevents) do event
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
 
             ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
+            ### now get engine move
+            ### turn off below if you want to play both sides!
+            ###################################################################################################################################################
+            PLAYER_TURN[] = false
+            dwarf_turn[] = !dwarf_turn[]
+            ### engine move
+            if !PLAYER_TURN[]
+                println("Engine thinking...")
+                move = GetEngineMove(engine, board)
+                println(move)
+
+                MoveFromString!(board, move)
+
+                ReplacePieces!(ax, piece_scatters, board, pieces)
+
+                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+                ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
+            end
+            PLAYER_TURN[] = true
+            ###################################################################################################################################################
 
         ### Invalid move or capture selected
         else
@@ -176,7 +222,7 @@ onmouseleftclick(mevents) do event
         dwarf_turn[] = false
 
     ### if troll turn and troll is selected
-    elseif PLAYER_TURN && !dwarf_turn[] && click_mode[] == :await_move
+    elseif PLAYER_TURN[] && !dwarf_turn[] && click_mode[] == :await_move
 
         ### troll capture must go first here! 
         if [square[2], square[1]] ∈ GetPossibleTrollShoves(selected_square.x[2], selected_square.x[1], board)
@@ -193,6 +239,29 @@ onmouseleftclick(mevents) do event
 
             ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
+            ### now get engine move
+            ### turn off below if you want to play both sides!
+            ###################################################################################################################################################
+            PLAYER_TURN[] = false
+            dwarf_turn[] = !dwarf_turn[]
+            ### engine move
+            if !PLAYER_TURN[]
+                println("Engine thinking...")
+                move = GetEngineMove(engine, board)
+                println(move)
+
+                MoveFromString!(board, move)
+
+                ReplacePieces!(ax, piece_scatters, board, pieces)
+
+                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+                ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
+            end
+            PLAYER_TURN[] = true
+            ###################################################################################################################################################
+
 
         elseif [square[2], square[1]] ∈ GetPossibleTrollMoves(selected_square.x[2], selected_square.x[1], board)
 
@@ -207,6 +276,29 @@ onmouseleftclick(mevents) do event
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
 
             ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
+            ### now get engine move
+            ### turn off below if you want to play both sides!
+            ###################################################################################################################################################
+            PLAYER_TURN[] = false
+            dwarf_turn[] = !dwarf_turn[]
+            ### engine move
+            if !PLAYER_TURN[]
+                println("Engine thinking...")
+                move = GetEngineMove(engine, board)
+                println(move)
+
+                MoveFromString!(board, move)
+
+                ReplacePieces!(ax, piece_scatters, board, pieces)
+
+                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+                ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
+            end
+            PLAYER_TURN[] = true
+            ###################################################################################################################################################
 
         ### Invalid move or capture selected
         else
@@ -228,14 +320,8 @@ onmouseleftclick(mevents) do event
 
     end
 
-    ### turn this off if you want to play both sides!
-    PLAYER_TURN = false
-    ### engine move
-    if !PLAYER_TURN
-        println("Engine thinking...")
-        move = GetEngineMove(engine, board)
-    end
-    PLAYER_TURN = true
+    dwarf_turn[] = true
+
 
     return
 
