@@ -22,6 +22,8 @@ click_mode = Ref(:normal)
 selected_square = Ref{Point{2,Int64}}()
 dwarf_turn = Ref(true)
 
+PLAYER_TURN = true
+
 ### some plotting variables for updating makie plotted board
 global move_scatters = Ref(Vector{Any}())
 global capture_scatters = Ref(Vector{Any}())
@@ -35,18 +37,19 @@ num_dwarves_tracker = []
 num_trolls_tracker = []
 
 # Initialize makie figure and axis
-f = Figure()
+f = Figure(size = (800, 600))
 ax = Axis(f[1, 1], aspect=1, xticks=(1:15, files), yticks=(1:15, ranks), xgridvisible = false, ygridvisible = false)
-ax2 = Axis(f[2, 2], aspect=1, xgridvisible = false, ygridvisible = false)
-# hidedecorations!(ax2)
-# hidespines!(ax2)
+ax2 = Axis(f[1, 2], aspect=1, xgridvisible = false, ygridvisible = false)
+hidedecorations!(ax2)
+hidespines!(ax2)
+colsize!(f.layout, 2, Auto(0.5))
 
 ### setup button(s)
-f[2, 1] = buttongrid = GridLayout(tellwidth = false, tellheight = false, columns = 2, rows = 1)
+f[2, 1] = buttongrid = GridLayout(tellwidth = false, tellheight = true, columns = 2, rows = 1)
 buttonlabels = ["Undo Move", "Reset Game"]
 buttons = buttongrid[1, 1:2] = [Button(f, label = l) for l in buttonlabels]
 
-f[2, 2] = textgrid = GridLayout(tellwidth = false, tellheight = false, columns = 3, rows = 1)
+f[1, 2] = textgrid = GridLayout(tellwidth = false, tellheight = false, columns = 3, rows = 1)
 ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
 # Initialize Thud board
@@ -65,7 +68,7 @@ mevents = addmouseevents!(ax.scene)
 ### setup button behaviour
 on(buttons[1].clicks) do b1
     ### undo the move
-    UndoMove!(board, move_tracker, dwarf_turn)
+    UndoMove!(board, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, dwarf_turn)
     ### clear / fix plot by removing and re-placing pieces
     ClearHighlights!(ax, move_scatters, capture_scatters)
     ReplacePieces!(ax, piece_scatters, board, pieces)
@@ -83,9 +86,9 @@ on(buttons[2].clicks) do b2
     num_trolls_tracker = []
     ClearHighlights!(ax, move_scatters, capture_scatters)
     ReplacePieces!(ax, piece_scatters, board, pieces)
+    ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
     dwarf_turn[] = true
 end
-
 
 ### add mouse behaviour & link to game logic
 onmouseleftclick(mevents) do event
@@ -103,6 +106,7 @@ onmouseleftclick(mevents) do event
         click_mode[] = :await_move
         selected_square[] = square
 
+    ### if troll turn and troll is selected
     elseif click_mode[] == :normal && !dwarf_turn[] && board[square[2], square[1]] == 2
 
         ### get possible troll moves 
@@ -114,6 +118,7 @@ onmouseleftclick(mevents) do event
         click_mode[] = :await_move
         selected_square[] = square
 
+    ### if dwarf turn and dwarf is selected 
     elseif click_mode[] == :await_move && dwarf_turn[]
 
         if [square[2], square[1]] ∈ GetPossibleDwarfMoves(selected_square.x[2], selected_square.x[1], board)
@@ -146,8 +151,8 @@ onmouseleftclick(mevents) do event
 
             ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
+        ### Invalid move or capture selected
         else
-            # println("Invalid move or capture selected.")
 
             ClearHighlights!(ax, move_scatters, capture_scatters)
 
@@ -167,6 +172,7 @@ onmouseleftclick(mevents) do event
         # selected_square[] = nothing
         dwarf_turn[] = false
 
+    ### if troll turn and troll is selected
     elseif click_mode[] == :await_move && !dwarf_turn[]
 
         ### troll capture must go first here! 
@@ -199,9 +205,8 @@ onmouseleftclick(mevents) do event
 
             ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
-
+        ### Invalid move or capture selected
         else
-            # println("Invalid move or capture selected.")
 
             ClearHighlights!(ax, move_scatters, capture_scatters)
 
@@ -216,7 +221,6 @@ onmouseleftclick(mevents) do event
 
         # Reset state
         click_mode[] = :normal
-        # selected_square[] = nothing
         dwarf_turn[] = true
 
     end
