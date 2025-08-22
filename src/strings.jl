@@ -19,20 +19,52 @@ function MoveFromString!(board, move_string)
         println("Impossible Move! Shoves / Hurls can only be done by Trolls / Dwarves!")
         return board
     elseif (piece == "Dw" && move_type == "Mv")
-        board = MoveDwarf(from, to, board)
+        board = MoveDwarf!(from, to, board)
         return board
     elseif (piece == "Tr" && move_type == "Mv")
-        board = MoveTroll(from, to, board)
+        board = MoveTroll!(from, to, board)
         return board
     elseif (piece == "Tr" && move_type == "Sh")
-        board = ShoveTroll(from, to, board)
+        board = ShoveTroll!(from, to, board)
         return board
     elseif (piece == "Dw" && move_type == "Hu")
-        board = HurlDwarf(from, to, board)
+        board = HurlDwarf!(from, to, board)
         return board
     else
         println("No idea how you reached this error, but that input doesnt work")
         return board
+    end
+end
+
+ ###TODO make non-mutating version of above function
+function MoveFromString(board, move_string)
+
+    new_board = deepcopy(board)
+    ### first split move string into constituent parts
+    piece, from_string, move_type, to_string = split(move_string, "-")
+
+    ### get 'from' and 'to' from characters of from_string and to_string moves
+    from = [parse(Int, from_string[2:end]), findfirst(x -> x == string(from_string[1]), files)]
+    to = [parse(Int, to_string[2:end]), findfirst(x -> x == string(to_string[1]), files)]
+
+    if (piece == "Dw" && move_type == "Sh") || (piece == "Tr" && move_type == "Hu")
+        println("Impossible Move! Shoves / Hurls can only be done by Trolls / Dwarves!")
+        return new_board
+    elseif (piece == "Dw" && move_type == "Mv")
+        new_board = MoveDwarf!(from, to, new_board)
+        return new_board
+    elseif (piece == "Tr" && move_type == "Mv")
+        new_board = MoveTroll!(from, to, new_board)
+        return new_board
+    elseif (piece == "Tr" && move_type == "Sh")
+        new_board = ShoveTroll!(from, to, new_board)
+        return new_board
+    elseif (piece == "Dw" && move_type == "Hu")
+        new_board = HurlDwarf!(from, to, new_board)
+        return new_board
+    else
+        println("No idea how you reached this error, but that input doesnt work")
+        return new_board
     end
 end
 
@@ -66,7 +98,7 @@ function CaptureStringFromBoard(initial_pos, final_pos, dwarf_turn)
 
 end
 
-### TODO finish
+### TODO check this works
 function CollectAllStrings(board, PLAYER_TURN)
 
     a, b, c = GetAllPossibleMoves(board, PLAYER_TURN)
