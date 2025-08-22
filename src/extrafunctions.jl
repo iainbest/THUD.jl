@@ -174,7 +174,13 @@ function GetPossibleDwarfMoves(j, i, board)
     try
         push!(PossibleDwarfMoves, rank_squares[i:findall(x -> x[2] > i, rank_squares)[idx]-1])
     catch e
-        push!(PossibleDwarfMoves, [])
+        ### fix bug where some moves not being found by dwarves
+        if idx === nothing && !isempty(findall(x -> x[2] > i, rank_squares))
+            push!(PossibleDwarfMoves, rank_squares[i:findall(x -> x[2] > i, rank_squares)[end]])
+        else
+            push!(PossibleDwarfMoves, [])
+        end
+        
     end
     ### below(left)
     idx = findlast(x -> x == 1, rank_squares_occupied[findall(x -> x[2] < i, rank_squares)])
@@ -194,7 +200,12 @@ function GetPossibleDwarfMoves(j, i, board)
     try
         push!(PossibleDwarfMoves, file_squares[j:findall(x -> x[1] > j, file_squares)[idx]-1])
     catch e
-        push!(PossibleDwarfMoves, [])
+        ### fix bug where some moves not being found by dwarves
+        if idx === nothing && !isempty(findall(x -> x[1] > j, file_squares))
+            push!(PossibleDwarfMoves, file_squares[j:findall(x -> x[1] > j, file_squares)[end]])
+        else
+            push!(PossibleDwarfMoves, [])
+        end
     end
     ### below
     idx = findlast(x -> x == 1, file_squares_occupied[findall(x -> x[1] < j, file_squares)])
