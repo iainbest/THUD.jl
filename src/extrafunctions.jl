@@ -241,24 +241,3 @@ function UndoMove!(board, move_tracker, eval_tracker, num_dwarves_tracker, num_t
     return
 
 end
-
-function GetRandomMove(board)
-    
-    p, m, c = GetAllPossibleMoves(board, dwarf_turn)
-
-    ### check if empty; if so no possible moves & game is over
-    @assert !isempty(p)
-    
-    ### choose random piece (TODO is this a fair way to do this?)
-    idx = rand(eachindex(teset[1]))
-
-    ### get possible captures + moves for that piece & choose randomly between them
-    move = rand(vcat(m[idx], c[idx]))
-
-    return move
-
-end
-
-function GetBestMove(depth, board)
-
-end

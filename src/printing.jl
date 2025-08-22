@@ -202,6 +202,4 @@ function ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num
     text!(ax2, 0, -0.25, text = "Num Dwarves: $(!isempty(num_dwarves_tracker) ? num_dwarves_tracker[end] : "---")", align = (:center, :center))
     text!(ax2, 0, -0.5, text = "Num Trolls: $(!isempty(num_trolls_tracker) ? num_trolls_tracker[end] : "---")", align = (:center, :center))
 
-    
-
 end
