@@ -22,7 +22,8 @@ some notes:
 
 ### TODO:
 #### 'urgent'
-- add trackers to new play.jl
+- ~~add trackers to new play.jl~~
+- ~~update text trackers~~
 
 #### Misc
 - ~~undo move function?~~ - Done, check this still works
