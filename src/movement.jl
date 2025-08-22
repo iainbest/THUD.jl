@@ -380,7 +380,7 @@ end
 
 ### dwarves move like a chess queen
 ### from and to are of form [j, i]
-function MoveDwarf(from, to, board)
+function MoveDwarf!(from, to, board)
     @assert board[from...] == DWARF
     @assert to ∈ GetPossibleDwarfMoves(from[1], from[2], board)
 
@@ -391,14 +391,13 @@ end
 
 ### trolls move like a chess king
 ### from and to are of form [j, i]
-function MoveTroll(from, to, board)
+function MoveTroll!(from, to, board)
     @assert board[from...] == TROLL
     @assert to ∈ GetPossibleTrollMoves(from[1], from[2], board)
 
     board[from[1], from[2]] = EMPTY
     board[to[1], to[2]] = TROLL
-    return board
-
+    
     ### after movement, troll has captures surrounding dwarves (should they always?)
     ### currently choosing to always capture
     neighbours = GetSquareNeighbours(to[1], to[2])
@@ -408,6 +407,7 @@ function MoveTroll(from, to, board)
         end
     end
 
+    return board
 end
 
 ### j is row, i is column of selected dwarf in board matrix
@@ -580,7 +580,7 @@ end
 ### straight line of dwarves, hurl dwarf less than or equal to number of dwarves in line
 ### dwarf at front of line replaces position of targeted troll (which is captured)
 ### from and to are of form [j, i]
-function HurlDwarf(from, to, board)
+function HurlDwarf!(from, to, board)
     @assert board[from...] == DWARF
     @assert to ∈ GetPossibleDwarfHurls(from[1], from[2], board)
 
@@ -596,7 +596,7 @@ end
 ### troll MUST capture at least one dwarf if making this move
 ### i believe that with this move, all possible dwarves are captured
 ### from and to are of form [j, i]
-function ShoveTroll(from, to, board)
+function ShoveTroll!(from, to, board)
     @assert board[from...] == TROLL
     @assert to ∈ GetPossibleTrollShoves(from[1], from[2], board)
 
