@@ -1101,6 +1101,10 @@ end
 ### undo the last move, i.e. revert board to previous state
 function UndoMove!(board, move_tracker, dwarf_turn)
 
+    if number_turns[] == 0
+        return
+    end
+
     StartPositions!(board)
     pop!(move_tracker)
     pop!(eval_tracker)
