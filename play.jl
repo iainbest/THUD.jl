@@ -23,6 +23,9 @@ selected_square = Ref{Point{2,Int64}}()
 dwarf_turn = Ref(true)
 
 PLAYER_TURN = true
+### Choose engine here
+engine = RandomEngine()
+# engine = MinimaxEngine(2, true) # depth 2, use alpha-beta pruning
 
 ### some plotting variables for updating makie plotted board
 global move_scatters = Ref(Vector{Any}())
@@ -95,7 +98,7 @@ onmouseleftclick(mevents) do event
     square = round.(Int, event.data)
 
     ### if dwarf turn and dwarf is selected
-    if click_mode[] == :normal && dwarf_turn[] && board[square[2], square[1]] == 1
+    if PLAYER_TURN && dwarf_turn[] && click_mode[] == :normal && board[square[2], square[1]] == 1
 
         ### get possible dwarf moves 
         moves = GetPossibleDwarfMoves(square[2], square[1], board)
@@ -107,7 +110,7 @@ onmouseleftclick(mevents) do event
         selected_square[] = square
 
     ### if troll turn and troll is selected
-    elseif click_mode[] == :normal && !dwarf_turn[] && board[square[2], square[1]] == 2
+    elseif PLAYER_TURN && !dwarf_turn[] && click_mode[] == :normal && board[square[2], square[1]] == 2
 
         ### get possible troll moves 
         moves = GetPossibleTrollMoves(square[2], square[1], board)
@@ -119,14 +122,14 @@ onmouseleftclick(mevents) do event
         selected_square[] = square
 
     ### if dwarf turn and dwarf is selected 
-    elseif click_mode[] == :await_move && dwarf_turn[]
+    elseif PLAYER_TURN && dwarf_turn[] && click_mode[] == :await_move
 
         if [square[2], square[1]] ∈ GetPossibleDwarfMoves(selected_square.x[2], selected_square.x[1], board)
 
             move_string = MoveStringFromBoard([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], dwarf_turn[])
 
             ### perform the dwarf move
-            MoveDwarf([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
+            MoveDwarf!([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
 
             ### clear / fix plot by removing and re-placing pieces
             ReplacePieces!(ax, piece_scatters, board, pieces)
@@ -142,7 +145,7 @@ onmouseleftclick(mevents) do event
 
             # Perform the capture
             ### check this func call
-            HurlDwarf([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
+            HurlDwarf!([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
 
             ### clear / fix plot by removing and re-placing pieces
             ReplacePieces!(ax, piece_scatters, board, pieces)
@@ -173,7 +176,7 @@ onmouseleftclick(mevents) do event
         dwarf_turn[] = false
 
     ### if troll turn and troll is selected
-    elseif click_mode[] == :await_move && !dwarf_turn[]
+    elseif PLAYER_TURN && !dwarf_turn[] && click_mode[] == :await_move
 
         ### troll capture must go first here! 
         if [square[2], square[1]] ∈ GetPossibleTrollShoves(selected_square.x[2], selected_square.x[1], board)
@@ -196,7 +199,7 @@ onmouseleftclick(mevents) do event
             move_string = MoveStringFromBoard([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], dwarf_turn[])
 
             ### Perform the move
-            MoveTroll([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
+            MoveTroll!([selected_square.x[2], selected_square.x[1]], [square[2], square[1]], board)
 
             ### clear / fix plot by removing and re-placing pieces
             ReplacePieces!(ax, piece_scatters, board, pieces)
@@ -224,6 +227,15 @@ onmouseleftclick(mevents) do event
         dwarf_turn[] = true
 
     end
+
+    ### turn this off if you want to play both sides!
+    PLAYER_TURN = false
+    ### engine move
+    if !PLAYER_TURN
+        println("Engine thinking...")
+        move = GetEngineMove(engine, board)
+    end
+    PLAYER_TURN = true
 
     return
 
