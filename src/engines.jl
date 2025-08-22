@@ -8,16 +8,14 @@ end
 ### get a random move
 function GetEngineMove(engine::RandomEngine, board)
     
-    positions, m, c = GetAllPossibleMoves(board, dwarf_turn)
+    move_strings = CollectAllStrings(board, dwarf_turn[])
 
+    ### TODO check if necessary? 
     ### check if empty; if so no possible moves & game is over
-    @assert !isempty(positions)
-    
-    ### choose random piece (TODO is this a fair way to do this?)
-    idx = rand(eachindex(positions[1]))
+    @assert !isempty(move_strings) 
 
     ### get possible captures + moves for that piece & choose randomly between them
-    move = rand(vcat(m[idx], c[idx]))
+    move = rand(move_strings)
 
     return move
 
