@@ -185,3 +185,23 @@ function ClearHighlights!(ax, move_scatters, capture_scatters)
     end
     empty!(capture_scatters[])
 end
+
+function ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
+    empty!(ax2)
+
+    # t1[] = text!(ax2, 0, 0.5, text = "Turn number : $(number_turns[])", align = (:center, :center))
+    # t2[] = text!(ax2, 0, 0.25, text = "Previous move: $(!isempty(move_tracker) ? move_tracker[end] : "---")", align = (:center, :center))
+    # t3[] = text!(ax2, 0, 0, text = "Evaluation: $(!isempty(eval_tracker) ? eval_tracker[end] : "---")", align = (:center, :center))
+    # t4[] = text!(ax2, 0, -0.25, text = "$(!isempty(num_dwarves_tracker) ? num_dwarves_tracker[end] : "---")", align = (:center, :center))
+    # t5[] = text!(ax2, 0, -0.5, text = "$(!isempty(num_trolls_tracker) ? num_trolls_tracker[end] : "---")", align = (:center, :center))
+
+    text!(ax2, 0, 0.5, text = "Turn number : $(number_turns[])", align = (:center, :center))
+    text!(ax2, 0, 0.25, text = "Previous move: $(!isempty(move_tracker) ? move_tracker[end] : "---")", align = (:center, :center))
+    text!(ax2, 0, 0, text = "Evaluation: $(!isempty(eval_tracker) ? eval_tracker[end] : "---")", align = (:center, :center))
+    text!(ax2, 0, -0.25, text = "$(!isempty(num_dwarves_tracker) ? num_dwarves_tracker[end] : "---")", align = (:center, :center))
+    text!(ax2, 0, -0.5, text = "$(!isempty(num_trolls_tracker) ? num_trolls_tracker[end] : "---")", align = (:center, :center))
+
+    
+
+end

@@ -37,7 +37,17 @@ num_trolls_tracker = []
 # Initialize makie figure and axis
 f = Figure()
 ax = Axis(f[1, 1], aspect=1, xticks=(1:15, files), yticks=(1:15, ranks), xgridvisible = false, ygridvisible = false)
-# hidedecorations!(ax)
+ax2 = Axis(f[2, 2], aspect=1, xgridvisible = false, ygridvisible = false)
+# hidedecorations!(ax2)
+# hidespines!(ax2)
+
+### setup button(s)
+f[2, 1] = buttongrid = GridLayout(tellwidth = false, tellheight = false, columns = 2, rows = 1)
+buttonlabels = ["Undo Move", "Reset Game"]
+buttons = buttongrid[1, 1:2] = [Button(f, label = l) for l in buttonlabels]
+
+f[2, 2] = textgrid = GridLayout(tellwidth = false, tellheight = false, columns = 3, rows = 1)
+ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
 # Initialize Thud board
 board = MakeEmptyBoard(BOARD_SIZE)
@@ -50,7 +60,32 @@ AddPiecesToHeatmapGrid!(ax, board, pieces)
 for int in keys(interactions(ax))
     deactivate_interaction!(ax, int)
 end
-mevents = addmouseevents!(ax.scene, hm)
+mevents = addmouseevents!(ax.scene)
+
+### setup button behaviour
+on(buttons[1].clicks) do b1
+    ### undo the move
+    UndoMove!(board, move_tracker, dwarf_turn)
+    ### clear / fix plot by removing and re-placing pieces
+    ClearHighlights!(ax, move_scatters, capture_scatters)
+    ReplacePieces!(ax, piece_scatters, board, pieces)
+
+    ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+end
+
+on(buttons[2].clicks) do b2
+    ### reset the game
+    StartPositions!(board)
+    number_turns[] = 0
+    move_tracker = []
+    eval_tracker = []
+    num_dwarves_tracker = []
+    num_trolls_tracker = []
+    ClearHighlights!(ax, move_scatters, capture_scatters)
+    ReplacePieces!(ax, piece_scatters, board, pieces)
+    dwarf_turn[] = true
+end
+
 
 ### add mouse behaviour & link to game logic
 onmouseleftclick(mevents) do event
@@ -93,6 +128,8 @@ onmouseleftclick(mevents) do event
 
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
 
+            ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
 
         elseif [square[2], square[1]] ∈ GetPossibleDwarfHurls(selected_square.x[2], selected_square.x[1], board)
 
@@ -106,6 +143,8 @@ onmouseleftclick(mevents) do event
             ReplacePieces!(ax, piece_scatters, board, pieces)
 
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+            ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
         else
             # println("Invalid move or capture selected.")
@@ -143,6 +182,8 @@ onmouseleftclick(mevents) do event
 
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
 
+            ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
+
 
         elseif [square[2], square[1]] ∈ GetPossibleTrollMoves(selected_square.x[2], selected_square.x[1], board)
 
@@ -155,6 +196,8 @@ onmouseleftclick(mevents) do event
             ReplacePieces!(ax, piece_scatters, board, pieces)
 
             UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+
+            ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
 
         else
