@@ -1,7 +1,4 @@
-### might be worth swapping from plots to Makie for printing the board
-### see gist and video below
-### can update plots based on where you click -- useful for highlighting possible moves
-
+### Have swapped from Plots to GLMakie for visualisation, see gist and video below for inspiration
 ### https://gist.github.com/Datseris/4b9d25a3ddb3936d3b83d3037f8188dd
 ### https://www.youtube.com/watch?v=L-gyDvhjzGQ&t=377s
 
