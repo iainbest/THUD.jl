@@ -30,9 +30,13 @@ end
 
 
 ### TODO: implement check if game is in terminal state
-### probably requires game play to determine this
-function is_terminal(board)
-    return false
+### probably requires game play to determine/tweak this
+function IsBoardTerminal(board)
+    if number_turn[] > 250 || CountDwarves(board) == 0 || CountTrolls(board) == 0
+        return true
+    else
+        return false
+    end
 end
 
 
@@ -41,9 +45,9 @@ end
 ### EvaluateBoard should return higher value for better position for player (!) 
 ### TODO check
 function minimax(board, depth, maximizing_player, player; α=-Inf, β=Inf, use_alpha_beta=false)
-    if player && depth == 0 || is_terminal(board)
+    if player && depth == 0 || IsBoardTerminal(board)
         return EvaluateBoard(board), nothing
-    elseif !player && depth == 0 || is_terminal(board)
+    elseif !player && depth == 0 || IsBoardTerminal(board)
         return -EvaluateBoard(board), nothing
     end
 
