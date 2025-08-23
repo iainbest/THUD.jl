@@ -23,9 +23,12 @@ selected_square = Ref{Point{2,Int64}}()
 dwarf_turn = Ref(true)
 
 PLAYER_TURN = Ref(true)
+
+
 ### Choose engine here
-engine = RandomEngine()
-# engine = MinimaxEngine(2, true) # depth 2, use alpha-beta pruning
+use_engine = true
+# engine = RandomEngine()
+engine = MinimaxEngine(2, true) # depth 2, use alpha-beta pruning
 
 ### some plotting variables for updating makie plotted board
 global move_scatters = Ref(Vector{Any}())
@@ -71,7 +74,7 @@ mevents = addmouseevents!(ax.scene)
 ### setup button behaviour
 on(buttons[1].clicks) do b1
     ### undo the move
-    UndoMove!(board, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, dwarf_turn)
+    UndoMove!(board, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, dwarf_turn, use_engine)
     ### clear / fix plot by removing and re-placing pieces
     ClearHighlights!(ax, move_scatters, capture_scatters)
     ReplacePieces!(ax, piece_scatters, board, pieces)
@@ -146,14 +149,14 @@ onmouseleftclick(mevents) do event
             ### engine move
             if !PLAYER_TURN[]
                 println("Engine thinking...")
-                move = GetEngineMove(engine, board)
-                println(move)
+                engine_move_string = GetEngineMove(engine, board)
+                println(engine_move_string)
 
-                MoveFromString!(board, move)
+                MoveFromString!(board, engine_move_string)
 
                 ReplacePieces!(ax, piece_scatters, board, pieces)
 
-                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, engine_move_string, number_turns)
 
                 ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
@@ -185,14 +188,14 @@ onmouseleftclick(mevents) do event
             ### engine move
             if !PLAYER_TURN[]
                 println("Engine thinking...")
-                move = GetEngineMove(engine, board)
-                println(move)
+                engine_move_string = GetEngineMove(engine, board)
+                println(engine_move_string)
 
-                MoveFromString!(board, move)
+                MoveFromString!(board, engine_move_string)
 
                 ReplacePieces!(ax, piece_scatters, board, pieces)
 
-                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, engine_move_string, number_turns)
 
                 ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
@@ -247,14 +250,14 @@ onmouseleftclick(mevents) do event
             ### engine move
             if !PLAYER_TURN[]
                 println("Engine thinking...")
-                move = GetEngineMove(engine, board)
-                println(move)
+                engine_move_string = GetEngineMove(engine, board)
+                println(engine_move_string)
 
-                MoveFromString!(board, move)
+                MoveFromString!(board, engine_move_string)
 
                 ReplacePieces!(ax, piece_scatters, board, pieces)
 
-                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, engine_move_string, number_turns)
 
                 ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 
@@ -285,14 +288,14 @@ onmouseleftclick(mevents) do event
             ### engine move
             if !PLAYER_TURN[]
                 println("Engine thinking...")
-                move = GetEngineMove(engine, board)
-                println(move)
+                engine_move_string = GetEngineMove(engine, board)
+                println(engine_move_string)
 
-                MoveFromString!(board, move)
+                MoveFromString!(board, engine_move_string)
 
                 ReplacePieces!(ax, piece_scatters, board, pieces)
 
-                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, move_string, number_turns)
+                UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, board, engine_move_string, number_turns)
 
                 ShowTrackers!(ax2, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, number_turns)
 

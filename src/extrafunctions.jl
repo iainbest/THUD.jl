@@ -217,19 +217,31 @@ function UpdateTrackers!(move_tracker, eval_tracker, num_dwarves_tracker, num_tr
 end
 
 ### undo the last move, i.e. revert board to previous state
-function UndoMove!(board, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, dwarf_turn)
+function UndoMove!(board, move_tracker, eval_tracker, num_dwarves_tracker, num_trolls_tracker, dwarf_turn, use_engine)
 
     if number_turns[] == 0
         return
     end
 
+    ### clear board to starting positions
     StartPositions!(board)
-    pop!(move_tracker)
-    pop!(eval_tracker)
-    pop!(num_dwarves_tracker)
-    pop!(num_trolls_tracker)
-    number_turns[] -= 1
 
+    ### if using engine, remove last two moves (one player + one engine)
+    if use_engine
+        splice!(move_tracker, length(move_tracker)-1:length(move_tracker))
+        splice!(eval_tracker, length(eval_tracker)-1:length(eval_tracker))
+        splice!(num_dwarves_tracker, length(num_dwarves_tracker)-1:length(num_dwarves_tracker))
+        splice!(num_trolls_tracker, length(num_trolls_tracker)-1:length(num_trolls_tracker))
+        number_turns[] -= 2
+    else
+        pop!(move_tracker)
+        pop!(eval_tracker)
+        pop!(num_dwarves_tracker)
+        pop!(num_trolls_tracker)
+        number_turns[] -= 1
+    end
+
+    ### reset board to correct state
     for move in move_tracker
 
         MoveFromString!(board, move)
