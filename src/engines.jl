@@ -31,8 +31,9 @@ end
 
 ### TODO: implement check if game is in terminal state
 ### probably requires game play to determine/tweak this
+### number_turns[] > odd so that second engine ends the game
 function IsBoardTerminal(board)
-    if number_turn[] > 250 || CountDwarves(board) == 0 || CountTrolls(board) == 0
+    if number_turns[] > 199 || CountDwarves(board) == 0 || CountTrolls(board) == 0
         return true
     else
         return false
