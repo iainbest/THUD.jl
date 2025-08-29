@@ -103,24 +103,19 @@ function CollectAllStrings(board, PLAYER_TURN)
 
     a, b, c = GetAllPossibleMoves(board, PLAYER_TURN)
 
-    all_strings = []
+    all_strings = String[]
     for i in eachindex(a)
+        ### push captures
+        # with append not push for lists
+        for j in c[i]
+            push!(all_strings, CaptureStringFromBoard(a[i], j, PLAYER_TURN))
+        end
+        
+        ### push moves
+        for j in b[i]
+            push!(all_strings, MoveStringFromBoard(a[i], j, PLAYER_TURN))
+        end
 
-        push!(all_strings, [MoveStringFromBoard(a[i], j, PLAYER_TURN) for j in b[i]])
-        push!(all_strings, [CaptureStringFromBoard(a[i], j, PLAYER_TURN) for j in c[i]])
-
-    end
-
-    ### TODO sometimes a MethodError occurs here TODO TODO
-    ### not exactly below error, but something like it...
-    ### MethodError(Base.mapreduce_empty, (Base.var"#308#309"{typeof(identity)}(identity), Base.BottomRF{typeof(Base._rf_findmin)}(Base._rf_findmin), Pair{Int64, Any}), 0x00000000000083de)
-    ### not sure what happens - seems to still work...
-    ### surpressed in try catch for now
-
-    ### reduce to Vector
-    try
-        all_strings = reduce(vcat, all_strings)
-    catch e
     end
 
     return all_strings
