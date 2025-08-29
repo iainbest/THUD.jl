@@ -36,7 +36,8 @@ end
 
 function GetDiagonals(j, i, board)
     s = size(board)[1]
-    out = []
+    ### declare type of array
+    out = Vector{Int64}[]
     for row in 1:s
         if j == row
             continue
@@ -57,7 +58,8 @@ end
 ### column == file
 function GetFile(j, i, board)
     s = size(board)[1]
-    out = []
+    ### declare type of array
+    out = Vector{Int64}[]
 
     for row in 1:s
         if row == j
@@ -72,7 +74,8 @@ end
 ### row == rank
 function GetRank(j, i, board)
     s = size(board)[1]
-    out = []
+    ### declare type of array
+    out = Vector{Int64}[]
 
     for col in 1:s
         if col == i
