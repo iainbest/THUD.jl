@@ -8,12 +8,23 @@ A simple recreation of the Discworld boardgame THUD in the Julia language. I int
     - how to state when game over? 
         - it is a decision from both players to stop when captures no longer possible / likely
         - could simply have a turn limit
-        - or if no captures made in x moves, finish game -- this is currently set to 250 turns (125 moves each for dwarves and trolls), check if this is sufficient
+        - or if no captures made in x moves, finish game -- this is currently set to 200 turns (100 moves each for dwarves and trolls), check if this is sufficient
         - repetition unlikely to be feasible due to size of board etc., although there is some symmetry to the board we could exploit
 
 - move tracker output - have last player and last engine move (i.e. last dwarf + last troll move) for readability?
 - add engine vs engine, probably as a separate .jl file. Allow output of game (move history + other trackers, chosen engines + settings, final score, different evaluation functions)
     - visualisation / data of these completed games (e.g. 100 games of random vs random, minimax vs minimax at set depth, different evaluation functions)
+    - see chess programming wiki [here](https://www.chessprogramming.org/Main_Page) for some other applicable ideas
+- test move ordering in minimax with alpha beta pruning
+    - see e.g. [here](https://stackoverflow.com/questions/9964496/alpha-beta-move-ordering), [here](https://www.chessprogramming.org/Move_Ordering)
+    - are captures worth checking before moves? 
+
+- optimise minimax function
+    - move ordering?
+    - transposition table 
+    - parallelise?
+    - profile functions within minimax (functions like CollectAllStrings, MoveFromString, EvaluateBoard for manipulating board, use e.g. [ProfileView.jl](https://github.com/timholy/ProfileView.jl) or Julia's inbuilt @profile)
+
 
 #### Misc
 - currently, troll captures are non optional -- i believe this is the correct interpretation of the rules
