@@ -4,6 +4,8 @@ using Reexport
 @reexport using LinearAlgebra
 # @reexport using Plots
 @reexport using GLMakie
+@reexport using JLD2
+@reexport using ProfileView
 
 ### includet for revise.jl revisions
 includet("constants.jl")
