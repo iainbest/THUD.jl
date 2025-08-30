@@ -106,14 +106,20 @@ function CollectAllStrings(board, PLAYER_TURN)
     all_strings = String[]
     for i in eachindex(a)
         ### push captures
-        # with append not push for lists
         for j in c[i]
-            push!(all_strings, CaptureStringFromBoard(a[i], j, PLAYER_TURN))
+            if isempty(j)
+                continue
+            else
+                push!(all_strings, CaptureStringFromBoard(a[i], j, PLAYER_TURN))
+            end
         end
-        
         ### push moves
         for j in b[i]
-            push!(all_strings, MoveStringFromBoard(a[i], j, PLAYER_TURN))
+            if isempty(j)
+                continue
+            else
+                push!(all_strings, MoveStringFromBoard(a[i], j, PLAYER_TURN))
+            end
         end
 
     end
