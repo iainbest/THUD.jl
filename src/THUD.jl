@@ -6,6 +6,7 @@ using Reexport
 @reexport using GLMakie
 @reexport using JLD2
 @reexport using ProfileView
+@reexport using BenchmarkTools
 
 ### includet for revise.jl revisions
 includet("constants.jl")
