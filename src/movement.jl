@@ -415,24 +415,24 @@ function GetPossibleDwarfHurls(j, i, board)
 
     ### make huge vector of 'possible' hurls in rank, file, and diagonals - nothing else off limits here!
     PossibleDwarfHurls = Vector{Vector{Int64}}[]
-    push!(PossibleDwarfHurls, GetRank(j, i, board))
-    push!(PossibleDwarfHurls, GetFile(j, i, board))
-    push!(PossibleDwarfHurls, GetDiagonals(j, i, board))
+    PossibleDwarfHurls = vcat(PossibleDwarfHurls, GetRank(j, i, board))
+    append!(PossibleDwarfHurls, GetFile(j, i, board))
+    append!(PossibleDwarfHurls, GetDiagonals(j, i, board))
 
-    ### TODO sometimes a MethodError occurs here TODO TODO
-    ### not exactly below error, but something like it...
-    ### MethodError(Base.mapreduce_empty, (Base.var"#308#309"{typeof(identity)}(identity), Base.BottomRF{typeof(Base._rf_findmin)}(Base._rf_findmin), Pair{Int64, Any}), 0x00000000000083de)
-    ### not sure what happens - seems to still work...
-    ### surpressed in try catch for now
+    # ### TODO sometimes a MethodError occurs here TODO TODO
+    # ### not exactly below error, but something like it...
+    # ### MethodError(Base.mapreduce_empty, (Base.var"#308#309"{typeof(identity)}(identity), Base.BottomRF{typeof(Base._rf_findmin)}(Base._rf_findmin), Pair{Int64, Any}), 0x00000000000083de)
+    # ### not sure what happens - seems to still work...
+    # ### surpressed in try catch for now
 
-    ### reduce to Vector
-    try
-        PossibleDwarfHurls = reduce(vcat, PossibleDwarfHurls)
-    catch e
-    end
+    # ## reduce to Vector
+    # try
+    #     PossibleDwarfHurls = reduce(vcat, PossibleDwarfHurls)
+    # catch e
+    # end
 
     ### first: dwarf MUST land on troll, all other options are impossible
-    more_possible_idx = []
+    more_possible_idx = Int[]
     for (idx, n) in enumerate(PossibleDwarfHurls)
         if board[n...] == TROLL
             push!(more_possible_idx, idx)
@@ -440,15 +440,15 @@ function GetPossibleDwarfHurls(j, i, board)
     end
 
     ### if no captures possible, return empty list
-    if more_possible_idx == []
-        return []
+    if isempty(more_possible_idx)
+        return Vector{Vector{Int64}}[]
     end
 
     PossibleDwarfHurls = PossibleDwarfHurls[more_possible_idx]
 
     ### next: get squares between dwarf and target troll
     ### all in between squares MUST be EMPTY
-    impossible_idx = []
+    impossible_idx = Int[]
     for (idx, n) in enumerate(PossibleDwarfHurls)
         path = GetSquaresBetween([j, i], n, board)
 
@@ -463,12 +463,12 @@ function GetPossibleDwarfHurls(j, i, board)
     deleteat!(PossibleDwarfHurls, impossible_idx)
 
     ### if none possible here, no more checks required
-    if PossibleDwarfHurls == []
+    if isempty(PossibleDwarfHurls)
         return PossibleDwarfHurls
     end
 
     ### finally: dwarf must have enough neighbours in row to hurl across space
-    impossible_idx = []
+    impossible_idx = Int[]
     for (idx, n) in enumerate(PossibleDwarfHurls)
         path = GetSquaresOtherSide([j, i], n, board)
 
@@ -494,24 +494,24 @@ function GetPossibleTrollShoves(j, i, board)
 
     ### make huge vector of 'possible' shoves in rank, file, and diagonals - nothing else off limits here!
     PossibleTrollShoves = Vector{Vector{Int64}}[]
-    push!(PossibleTrollShoves, GetRank(j, i, board))
-    push!(PossibleTrollShoves, GetFile(j, i, board))
-    push!(PossibleTrollShoves, GetDiagonals(j, i, board))
+    PossibleTrollShoves = vcat(PossibleTrollShoves, GetRank(j, i, board))
+    append!(PossibleTrollShoves, GetFile(j, i, board))
+    append!(PossibleTrollShoves, GetDiagonals(j, i, board))
 
-    ### TODO sometimes a MethodError occurs here TODO TODO
-    ### not exactly below error, but something like it...
-    ### MethodError(Base.mapreduce_empty, (Base.var"#308#309"{typeof(identity)}(identity), Base.BottomRF{typeof(Base._rf_findmin)}(Base._rf_findmin), Pair{Int64, Any}), 0x00000000000083de)
-    ### not sure what happens - seems to still work...
-    ### surpressed in try catch for now
+    # ### TODO sometimes a MethodError occurs here TODO TODO
+    # ### not exactly below error, but something like it...
+    # ### MethodError(Base.mapreduce_empty, (Base.var"#308#309"{typeof(identity)}(identity), Base.BottomRF{typeof(Base._rf_findmin)}(Base._rf_findmin), Pair{Int64, Any}), 0x00000000000083de)
+    # ### not sure what happens - seems to still work...
+    # ### surpressed in try catch for now
 
-    ### reduce to Vector
-    try
-        PossibleTrollShoves = reduce(vcat, PossibleTrollShoves)
-    catch e
-    end
+    # ### reduce to Vector
+    # try
+    #     PossibleTrollShoves = reduce(vcat, PossibleTrollShoves)
+    # catch e
+    # end
 
     ### first: troll MUST land NEXT TO at least one dwarf (and NOT ON a dwarf), all other options are impossible
-    more_possible_idx = []
+    more_possible_idx = Int[]
     for (idx, n) in enumerate(PossibleTrollShoves)
         if board[n...] == EMPTY
             neighbours = GetSquareNeighbours(n...)
@@ -525,15 +525,15 @@ function GetPossibleTrollShoves(j, i, board)
     end
 
     ### if no captures possible, return empty list
-    if more_possible_idx == []
-        return []
+    if isempty(more_possible_idx)
+        return Vector{Vector{Int64}}[]
     end
 
     PossibleTrollShoves = PossibleTrollShoves[more_possible_idx]
 
     ### next: get squares between troll and target dwarf
     ### all in between squares MUST be EMPTY
-    impossible_idx = []
+    impossible_idx = Int[]
     for (idx, n) in enumerate(PossibleTrollShoves)
         path = GetSquaresBetween([j, i], n, board)
 
@@ -548,12 +548,12 @@ function GetPossibleTrollShoves(j, i, board)
     deleteat!(PossibleTrollShoves, impossible_idx)
 
     ### if none possible here, no more checks required
-    if PossibleTrollShoves == []
+    if isempty(PossibleTrollShoves)
         return PossibleTrollShoves
     end
 
     ### finally: troll must have enough neighbours in row to shove across space
-    impossible_idx = []
+    impossible_idx = Int[]
     for (idx, n) in enumerate(PossibleTrollShoves)
         path = GetSquaresOtherSide([j, i], n, board)
 
@@ -621,8 +621,9 @@ function GetAllPossibleMoves(board, dwarf_turn)
         ### dwarves move
         @assert CountDwarves(board) > 0
 
-        Moves = []
-        Hurls = []
+        ### TODO type declarations
+        Moves = Vector{Vector{Int64}}[]
+        Hurls = Vector{Vector{Int64}}[]
 
         ### get where dwarves are
         DwarfPositions = GetDwarfPositions(board)
@@ -642,8 +643,9 @@ function GetAllPossibleMoves(board, dwarf_turn)
         ### trolls move
         @assert CountTrolls(board) > 0
 
-        Moves = []
-        Shoves = []
+        ### TODO type declarations
+        Moves = Vector{Vector{Int64}}[]
+        Shoves = Vector{Vector{Int64}}[]
 
         ### get where trolls are
         TrollPositions = GetTrollPositions(board)
