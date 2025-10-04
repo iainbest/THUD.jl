@@ -12,8 +12,8 @@ function MoveFromString!(board, move_string)
     piece, from_string, move_type, to_string = split(move_string, "-")
 
     ### get 'from' and 'to' from characters of from_string and to_string moves
-    from = [parse(Int, from_string[2:end]), findfirst(x -> x == string(from_string[1]), files)]
-    to = [parse(Int, to_string[2:end]), findfirst(x -> x == string(to_string[1]), files)]
+    from = SVector{2,Int}(parse(Int, from_string[2:end]), findfirst(x -> x == string(from_string[1]), files))
+    to = SVector{2,Int}(parse(Int, to_string[2:end]), findfirst(x -> x == string(to_string[1]), files))
 
     if (piece == "Dw" && move_type == "Sh") || (piece == "Tr" && move_type == "Hu")
         println("Impossible Move! Shoves / Hurls can only be done by Trolls / Dwarves!")
@@ -44,8 +44,8 @@ function MoveFromString(board, move_string)
     piece, from_string, move_type, to_string = split(move_string, "-")
 
     ### get 'from' and 'to' from characters of from_string and to_string moves
-    from = [parse(Int, from_string[2:end]), findfirst(x -> x == string(from_string[1]), files)]
-    to = [parse(Int, to_string[2:end]), findfirst(x -> x == string(to_string[1]), files)]
+    from = SVector{2,Int}(parse(Int, from_string[2:end]), findfirst(x -> x == string(from_string[1]), files))
+    to = SVector{2,Int}(parse(Int, to_string[2:end]), findfirst(x -> x == string(to_string[1]), files))
 
     if (piece == "Dw" && move_type == "Sh") || (piece == "Tr" && move_type == "Hu")
         println("Impossible Move! Shoves / Hurls can only be done by Trolls / Dwarves!")
