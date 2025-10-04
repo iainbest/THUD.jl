@@ -24,55 +24,58 @@ end
 
 ### get number of unique! threatened trolls
 function GetThreatenedTrolls(board)
-    poss_trolls = GetTrollPositions(board)
-    a = CountTrolls(board)
-    for dwarf_pos in GetDwarfPositions(board)
-        poss_hurls = GetPossibleDwarfHurls(dwarf_pos[1], dwarf_pos[2], board)
-        for hurl in poss_hurls
-            if hurl ∈ poss_trolls
-                filter!(x -> x != hurl, poss_trolls)
+    # Build a set of troll positions for fast membership tests
+    trolls = GetTrollPositions(board)
+    troll_set = Set{Tuple{Int,Int}}(((p[1], p[2]) for p in trolls))
+
+    threatened = Set{Tuple{Int,Int}}()
+    for d in GetDwarfPositions(board)
+        for h in GetPossibleDwarfHurls(d[1], d[2], board)
+            t = (h[1], h[2])
+            if t in troll_set
+                push!(threatened, t)
             end
         end
     end
-    b = length(poss_trolls)
-    return a - b
+
+    return length(threatened)
 end
 
 ### get number of unique threatened dwarves
 function GetThreatenedDwarves(board)
-    poss_dwarves = GetDwarfPositions(board)
-    a = CountDwarves(board)
-    for troll_pos in GetTrollPositions(board)
-        ### get possible troll moves. for those that land next to dwarves, count number of dwarves
-        troll_moves = GetPossibleTrollMoves(troll_pos[1], troll_pos[2], board)
-        for move in troll_moves
-            neighbours = GetSquareNeighbours(move[1], move[2])
-            ### filter neighbours for dwarves
-            filter!(x -> board[x...] == DWARF, neighbours)
-            for n in neighbours
-                if n ∈ poss_dwarves
-                    filter!(x -> x != n, poss_dwarves)
+    # We want the number of unique dwarves that can be threatened by any troll move
+    dwarves = GetDwarfPositions(board)
+    dwarf_set = Set{Tuple{Int,Int}}(((p[1], p[2]) for p in dwarves))
+
+    threatened = Set{Tuple{Int,Int}}()
+    for tpos in GetTrollPositions(board)
+        # possible normal troll moves
+        for mv in GetPossibleTrollMoves(tpos[1], tpos[2], board)
+            for nb in GetSquareNeighbours(mv[1], mv[2])
+                if board[nb...] == DWARF
+                    coord = (nb[1], nb[2])
+                    if coord in dwarf_set
+                        push!(threatened, coord)
+                    end
                 end
             end
         end
 
-        ### get possible troll shoves
-        troll_shoves = GetPossibleTrollShoves(troll_pos[1], troll_pos[2], board)
-        for shove in troll_shoves
-            neighbours = GetSquareNeighbours(shove[1], shove[2])
-            ### filter neighbours for dwarves
-            filter!(x -> board[x...] == DWARF, neighbours)
-            for n in neighbours
-                if n ∈ poss_dwarves
-                    filter!(x -> x != n, poss_dwarves)
+        # possible troll shoves
+        for sv in GetPossibleTrollShoves(tpos[1], tpos[2], board)
+            for nb in GetSquareNeighbours(sv[1], sv[2])
+                if board[nb...] == DWARF
+                    coord = (nb[1], nb[2])
+                    if coord in dwarf_set
+                        push!(threatened, coord)
+                    end
                 end
             end
         end
     end
-    b = length(poss_dwarves)
-    return a - b
-end
 
+    return length(threatened)
+end
 
 ### how to take into consideration more states of game, e.g.
 ###   fraction of dwarves / trolls remaining - done by evaluating piece values
