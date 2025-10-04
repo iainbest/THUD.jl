@@ -1,3 +1,5 @@
+using StaticArrays
+
 ### place board functions here too since all movement/logic etc takes place on board
 ### make (empty!) board
 function MakeEmptyBoard(BOARD_SIZE)
@@ -193,189 +195,46 @@ end
 
 ### j is row, i is column of selected dwarf in board matrix
 function GetPossibleDwarfMoves(j, i, board)
+    # Walk in each of the 8 directions and collect empty squares until blocked
+    results = SVector{2,Int}[]
+    directions = ((-1, 0), (1, 0), (0, -1), (0, 1), (-1, -1), (-1, 1), (1, -1), (1, 1))
+    nrows, ncols = size(board)
 
-    PossibleDwarfMoves = Vector{Vector{Int64}}[]
-
-    ### start with rank
-    rank_squares = GetRank(j, i, board)
-    ### check for occupied rank_squares
-    rank_squares_occupied = [OccupiedSquare(a..., board) for a in rank_squares]
-
-    ### above(right)
-    idx = findfirst(x -> x == 1, rank_squares_occupied[findall(x -> x[2] > i, rank_squares)])
-    try
-        push!(PossibleDwarfMoves, rank_squares[i:findall(x -> x[2] > i, rank_squares)[idx]-1])
-    catch e
-        ### fix bug where some moves not being found by dwarves
-        if idx === nothing && !isempty(findall(x -> x[2] > i, rank_squares))
-            push!(PossibleDwarfMoves, rank_squares[i:findall(x -> x[2] > i, rank_squares)[end]])
-        else
-            push!(PossibleDwarfMoves, [])
-        end
-        
-    end
-    ### below(left)
-    idx = findlast(x -> x == 1, rank_squares_occupied[findall(x -> x[2] < i, rank_squares)])
-    try
-        push!(PossibleDwarfMoves, rank_squares[findall(x -> x[2] < i, rank_squares)[idx]+1:i-1])
-    catch e
-        push!(PossibleDwarfMoves, rank_squares[1:i-1])
-    end
-
-    ### then file
-    file_squares = GetFile(j, i, board)
-    ### check for occupied rank_squares
-    file_squares_occupied = [OccupiedSquare(a..., board) for a in file_squares]
-
-    ### above
-    idx = findfirst(x -> x == 1, file_squares_occupied[findall(x -> x[1] > j, file_squares)])
-    try
-        push!(PossibleDwarfMoves, file_squares[j:findall(x -> x[1] > j, file_squares)[idx]-1])
-    catch e
-        ### fix bug where some moves not being found by dwarves
-        if idx === nothing && !isempty(findall(x -> x[1] > j, file_squares))
-            push!(PossibleDwarfMoves, file_squares[j:findall(x -> x[1] > j, file_squares)[end]])
-        else
-            push!(PossibleDwarfMoves, [])
+    @inbounds for (dr, dc) in directions
+        r = j + dr
+        c = i + dc
+        while 1 <= r <= nrows && 1 <= c <= ncols
+            v = board[r, c]
+            # stop if outside or king
+            if v == OUTSIDE || v == KING
+                break
+            end
+            # if empty, it's a legal move; if occupied, can't move further
+            if v == EMPTY
+                push!(results, SVector{2,Int}(r, c))
+                r += dr
+                c += dc
+                continue
+            else
+                break
+            end
         end
     end
-    ### below
-    idx = findlast(x -> x == 1, file_squares_occupied[findall(x -> x[1] < j, file_squares)])
-    try
-        push!(PossibleDwarfMoves, file_squares[findall(x -> x[1] < j, file_squares)[idx]+1:j-1])
-    catch e
-        push!(PossibleDwarfMoves, file_squares[1:j-1])
-    end
 
-
-    ### then diagonals
-    diagonal_squares = GetDiagonals(j, i, board)
-    ### check for occupied diagonals
-    diagonal_squares_occupied = [OccupiedSquare(a..., board) for a in diagonal_squares]
-    idxs = findall(x -> x == 1, diagonal_squares_occupied)
-
-    ### 4 cases: 
-    ### top left
-    idx = findall(x -> x[1] < j && x[2] < i, diagonal_squares[idxs])
-
-    try
-        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x - [j, i]) for x in diagonal_squares[idxs][idx]])]
-        ### from diagonal_squares, delete this first occupied square and every square after (decreasing in both j and i until either j or i hits 1)
-        while first_occupied_square[1] > 0 || first_occupied_square[2] > 0
-            filter!(x -> x != first_occupied_square, diagonal_squares)
-            first_occupied_square[1] -= 1
-            first_occupied_square[2] -= 1
-        end
-    catch e
-        ### can get ArgumentError: reducing over an empty collection is not allowed; consider supplying `init` to the reducer 
-        ### by doing argmin([]) i assume
-        ### doesnt seem to break if i catch it here
-        ### TODO fix
-        # println(e)
-    end
-
-    ### top right
-    diagonal_squares_occupied = [OccupiedSquare(a..., board) for a in diagonal_squares]
-    idxs = findall(x -> x == 1, diagonal_squares_occupied)
-
-    idx = findall(x -> x[1] < j && x[2] > i, diagonal_squares[idxs])
-
-    try
-        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x - [j, i]) for x in diagonal_squares[idxs][idx]])]
-        ### from diagonal_squares, delete this first occupied square and every square after (decreasing in j and increasing in i until either j hits 1 or i hits 15)
-        while first_occupied_square[1] > 0 || first_occupied_square[2] < 16
-            filter!(x -> x != first_occupied_square, diagonal_squares)
-            first_occupied_square[1] -= 1
-            first_occupied_square[2] += 1
-        end
-    catch e
-    end
-
-    ### bottom right
-    diagonal_squares_occupied = [OccupiedSquare(a..., board) for a in diagonal_squares]
-    idxs = findall(x -> x == 1, diagonal_squares_occupied)
-
-    idx = findall(x -> x[1] > j && x[2] > i, diagonal_squares[idxs])
-
-    try
-        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x - [j, i]) for x in diagonal_squares[idxs][idx]])]
-        ### from diagonal_squares, delete this first occupied square and every square after (increasing in j and i until either j hits 15)
-        while first_occupied_square[1] < 16 || first_occupied_square[2] < 16
-            filter!(x -> x != first_occupied_square, diagonal_squares)
-            first_occupied_square[1] += 1
-            first_occupied_square[2] += 1
-        end
-    catch e
-    end
-
-    ### bottom left
-    diagonal_squares_occupied = [OccupiedSquare(a..., board) for a in diagonal_squares]
-    idxs = findall(x -> x == 1, diagonal_squares_occupied)
-
-    idx = findall(x -> x[1] > j && x[2] < i, diagonal_squares[idxs])
-
-    try
-        first_occupied_square = diagonal_squares[idxs][idx][argmin([norm(x - [j, i]) for x in diagonal_squares[idxs][idx]])]
-        ### from diagonal_squares, delete this first occupied square and every square after (increasing in j and decreasing in i until either j hits 15 or i hits 1)
-        while first_occupied_square[1] < 16 || first_occupied_square[2] > 0
-            filter!(x -> x != first_occupied_square, diagonal_squares)
-            first_occupied_square[1] += 1
-            first_occupied_square[2] -= 1
-        end
-    catch e
-    end
-
-    ### push possible moves
-    try
-        push!(PossibleDwarfMoves, diagonal_squares)
-    catch e
-        ### if no moves found, push empty vector
-        push!(PossibleDwarfMoves, [])
-    end
-
-    ### TODO sometimes a MethodError occurs here TODO TODO
-    ### MethodError(Base.mapreduce_empty, (Base.var"#308#309"{typeof(identity)}(identity), Base.BottomRF{typeof(Base._rf_findmin)}(Base._rf_findmin), Pair{Int64, Any}), 0x00000000000083de)
-    ### not sure what happens - seems to still work...
-    ### surpressed in try catch for now
-
-    ### finally reduce to Vector{Int64}
-    try
-        PossibleDwarfMoves = reduce(vcat, PossibleDwarfMoves)
-    catch e
-    end
-
-    return PossibleDwarfMoves
+    return results
 end
 
 ### j is row, i is column of selected troll in board matrix
 function GetPossibleTrollMoves(j, i, board)
-
-    ### start by getting square neighbours
-    PossibleTrollMoves = GetSquareNeighbours(j, i)
-
-    ### remove king / rock as possible move
-    ### TODO make more general, i.e. remove piece that is labelled KING instead of specific position
-    filter!(x -> x != [8, 8], PossibleTrollMoves)
-
-    ### remove possible moves which are OUTSIDE of board
-    outside_idx = []
-    for (idx, n) in enumerate(PossibleTrollMoves)
-        if board[n...] == OUTSIDE
-            push!(outside_idx, idx)
+    # Trolls can move to any adjacent empty square (excluding OUTSIDE/KING)
+    out = SVector{2,Int}[]
+    for nb in GetSquareNeighbours(j, i)
+        v = board[nb[1], nb[2]]
+        if v == EMPTY
+            push!(out, nb)
         end
     end
-    deleteat!(PossibleTrollMoves, outside_idx)
-
-    ### filter out the occupied neighbours
-    occupied_idx = []
-    for (idx, n) in enumerate(PossibleTrollMoves)
-        if board[n...] != EMPTY
-            push!(occupied_idx, idx)
-        end
-    end
-    deleteat!(PossibleTrollMoves, occupied_idx)
-
-    return PossibleTrollMoves
+    return out
 end
 
 ### dwarves move like a chess queen
@@ -413,166 +272,113 @@ end
 ### j is row, i is column of selected dwarf in board matrix
 function GetPossibleDwarfHurls(j, i, board)
 
-    ### make huge vector of 'possible' hurls in rank, file, and diagonals - nothing else off limits here!
-    PossibleDwarfHurls = Vector{Vector{Int64}}[]
-    PossibleDwarfHurls = vcat(PossibleDwarfHurls, GetRank(j, i, board))
-    append!(PossibleDwarfHurls, GetFile(j, i, board))
-    append!(PossibleDwarfHurls, GetDiagonals(j, i, board))
+    # gather candidate targets along rank, file and diagonals
+    candidates = SVector{2,Int}[]
+    append!(candidates, GetRank(j, i, board))
+    append!(candidates, GetFile(j, i, board))
+    append!(candidates, GetDiagonals(j, i, board))
 
-    # ### TODO sometimes a MethodError occurs here TODO TODO
-    # ### not exactly below error, but something like it...
-    # ### MethodError(Base.mapreduce_empty, (Base.var"#308#309"{typeof(identity)}(identity), Base.BottomRF{typeof(Base._rf_findmin)}(Base._rf_findmin), Pair{Int64, Any}), 0x00000000000083de)
-    # ### not sure what happens - seems to still work...
-    # ### surpressed in try catch for now
-
-    # ## reduce to Vector
-    # try
-    #     PossibleDwarfHurls = reduce(vcat, PossibleDwarfHurls)
-    # catch e
-    # end
-
-    ### first: dwarf MUST land on troll, all other options are impossible
-    more_possible_idx = Int[]
-    for (idx, n) in enumerate(PossibleDwarfHurls)
-        if board[n...] == TROLL
-            push!(more_possible_idx, idx)
-        end
+    # quick reject: only targets that are trolls matter
+    candidates = [c for c in candidates if board[c...] == TROLL]
+    if isempty(candidates)
+        return SVector{2,Int}[]
     end
 
-    ### if no captures possible, return empty list
-    if isempty(more_possible_idx)
-        return Vector{Vector{Int64}}[]
-    end
+    nrows, ncols = size(board)
+    inbounds = (p::SVector{2,Int}) -> 1 <= p[1] <= nrows && 1 <= p[2] <= ncols
 
-    PossibleDwarfHurls = PossibleDwarfHurls[more_possible_idx]
+    results = SVector{2,Int}[]
 
-    ### next: get squares between dwarf and target troll
-    ### all in between squares MUST be EMPTY
-    impossible_idx = Int[]
-    for (idx, n) in enumerate(PossibleDwarfHurls)
-        path = GetSquaresBetween([j, i], n, board)
-
+    # for each troll target, check path emptiness and dwarf line on the other side
+    src = SVector{2,Int}(j, i)
+    for target in candidates
+        # path between source and target: interior squares must be EMPTY
+        path = GetSquaresBetween(src, target, board)
+        ok = true
         for p in path[2:end-1]
             if board[p...] != EMPTY
-                push!(impossible_idx, idx)
+                ok = false
                 break
             end
         end
-    end
+        if !ok
+            continue
+        end
 
-    deleteat!(PossibleDwarfHurls, impossible_idx)
-
-    ### if none possible here, no more checks required
-    if isempty(PossibleDwarfHurls)
-        return PossibleDwarfHurls
-    end
-
-    ### finally: dwarf must have enough neighbours in row to hurl across space
-    impossible_idx = Int[]
-    for (idx, n) in enumerate(PossibleDwarfHurls)
-        path = GetSquaresOtherSide([j, i], n, board)
-
-        for p in path
-            try
-                if board[p...] != DWARF
-                    push!(impossible_idx, idx)
-                    break
-                end
-            catch e
-                push!(impossible_idx, idx)
+        # squares on the other side (must all be DWARF)
+        other_side = GetSquaresOtherSide(src, target, board)
+        ok = true
+        for p in other_side
+            # skip invalid/outside coordinates quickly
+            if !inbounds(p) || board[p...] != DWARF
+                ok = false
                 break
             end
         end
+        if ok
+            push!(results, target)
+        end
     end
 
-    deleteat!(PossibleDwarfHurls, impossible_idx)
-
-    return PossibleDwarfHurls
+    return results
 end
 
 function GetPossibleTrollShoves(j, i, board)
+    # gather candidate targets along rank, file and diagonals
+    candidates = SVector{2,Int}[]
+    append!(candidates, GetRank(j, i, board))
+    append!(candidates, GetFile(j, i, board))
+    append!(candidates, GetDiagonals(j, i, board))
 
-    ### make huge vector of 'possible' shoves in rank, file, and diagonals - nothing else off limits here!
-    PossibleTrollShoves = Vector{Vector{Int64}}[]
-    PossibleTrollShoves = vcat(PossibleTrollShoves, GetRank(j, i, board))
-    append!(PossibleTrollShoves, GetFile(j, i, board))
-    append!(PossibleTrollShoves, GetDiagonals(j, i, board))
-
-    # ### TODO sometimes a MethodError occurs here TODO TODO
-    # ### not exactly below error, but something like it...
-    # ### MethodError(Base.mapreduce_empty, (Base.var"#308#309"{typeof(identity)}(identity), Base.BottomRF{typeof(Base._rf_findmin)}(Base._rf_findmin), Pair{Int64, Any}), 0x00000000000083de)
-    # ### not sure what happens - seems to still work...
-    # ### surpressed in try catch for now
-
-    # ### reduce to Vector
-    # try
-    #     PossibleTrollShoves = reduce(vcat, PossibleTrollShoves)
-    # catch e
-    # end
-
-    ### first: troll MUST land NEXT TO at least one dwarf (and NOT ON a dwarf), all other options are impossible
-    more_possible_idx = Int[]
-    for (idx, n) in enumerate(PossibleTrollShoves)
-        if board[n...] == EMPTY
-            neighbours = GetSquareNeighbours(n...)
-            for n_ in neighbours
-                if board[n_...] == DWARF
-                    push!(more_possible_idx, idx)
+    # quick reject: landing square must be EMPTY and adjacent to at least one DWARF
+    filtered = SVector{2,Int}[]
+    for c in candidates
+        if board[c...] == EMPTY
+            for nb in GetSquareNeighbours(c...)
+                if board[nb...] == DWARF
+                    push!(filtered, c)
                     break
                 end
             end
         end
     end
-
-    ### if no captures possible, return empty list
-    if isempty(more_possible_idx)
-        return Vector{Vector{Int64}}[]
+    if isempty(filtered)
+        return SVector{2,Int}[]
     end
 
-    PossibleTrollShoves = PossibleTrollShoves[more_possible_idx]
+    nrows, ncols = size(board)
+    inbounds = (p::SVector{2,Int}) -> 1 <= p[1] <= nrows && 1 <= p[2] <= ncols
 
-    ### next: get squares between troll and target dwarf
-    ### all in between squares MUST be EMPTY
-    impossible_idx = Int[]
-    for (idx, n) in enumerate(PossibleTrollShoves)
-        path = GetSquaresBetween([j, i], n, board)
-
+    results = SVector{2,Int}[]
+    for target in filtered
+        # path between source and target: interior squares must be EMPTY
+        path = GetSquaresBetween(SVector{2,Int}(j, i), target, board)
+        ok = true
         for p in path[2:end-1]
             if board[p...] != EMPTY
-                push!(impossible_idx, idx)
+                ok = false
                 break
             end
         end
-    end
+        if !ok
+            continue
+        end
 
-    deleteat!(PossibleTrollShoves, impossible_idx)
-
-    ### if none possible here, no more checks required
-    if isempty(PossibleTrollShoves)
-        return PossibleTrollShoves
-    end
-
-    ### finally: troll must have enough neighbours in row to shove across space
-    impossible_idx = Int[]
-    for (idx, n) in enumerate(PossibleTrollShoves)
-        path = GetSquaresOtherSide([j, i], n, board)
-
-        for p in path
-            try
-                if board[p...] != TROLL
-                    push!(impossible_idx, idx)
-                    break
-                end
-            catch e
-                push!(impossible_idx, idx)
+        # squares on the other side (must all be TROLL)
+        other_side = GetSquaresOtherSide(SVector{2,Int}(j, i), target, board)
+        ok = true
+        for p in other_side
+            if !inbounds(p) || board[p...] != TROLL
+                ok = false
                 break
             end
         end
+        if ok
+            push!(results, target)
+        end
     end
 
-    deleteat!(PossibleTrollShoves, impossible_idx)
-
-    return PossibleTrollShoves
+    return results
 
 end
 
