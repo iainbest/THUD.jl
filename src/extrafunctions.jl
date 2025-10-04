@@ -5,50 +5,47 @@ allcombinations(v...) = vec(collect(Iterators.product(v...)))
 ### square position is (i,j)
 ### j is row, i is column in board matrix
 function GetSquareNeighbours(j, i)
-
-    row_idxs = [j - 1, j, j + 1]
-    column_idxs = [i - 1, i, i + 1]
-
-    ### first remove neighbours above/below top/bottom rows
-    if j == 1
-        filter!(x -> x != j - 1, row_idxs)
+    # produce neighbours directly without intermediate arrays
+    s = BOARD_SIZE
+    neighbours = SVector{2,Int}[]
+    sizehint!(neighbours, 8)
+    @inbounds for dr in -1:1
+        r = j + dr
+        if !(1 <= r <= s)
+            continue
+        end
+        for dc in -1:1
+            c = i + dc
+            if !(1 <= c <= s)
+                continue
+            end
+            # skip the input square
+            if dr == 0 && dc == 0
+                continue
+            end
+            push!(neighbours, SVector{2,Int}(r, c))
+        end
     end
-    if j == BOARD_SIZE
-        filter!(x -> x != j + 1, row_idxs)
-    end
-
-    ### remove neighbours to left/right of first/last columns
-    if i == 1
-        filter!(x -> x != i - 1, column_idxs)
-    end
-    if i == BOARD_SIZE
-        filter!(x -> x != i + 1, column_idxs)
-    end
-
-    ### get neighbour indices as Vector{SVector{2,Int}}
-    neighbours = SVector{2,Int}[(r, c) for (r, c) in allcombinations(row_idxs, column_idxs)]
-
-    ### remove input square as neighbour
-    input = SVector{2,Int}(j, i)
-    filter!(x -> x != input, neighbours)
 
     return neighbours
 end
 
 function GetDiagonals(j, i, board)
-    s = size(board)[1]
-    ### declare type of array
+    s = size(board, 1)
     out = SVector{2,Int}[]
-    for row in 1:s
-        if j == row
+    # reasonable upper bound: at most 2*(s-1)
+    sizehint!(out, 2*(s-1))
+    @inbounds for row in 1:s
+        if row == j
             continue
         end
-        col1 = i - (j - row)
+        offset = row - j
+        col1 = i - offset
         if 1 <= col1 <= s
             push!(out, SVector{2,Int}(row, col1))
         end
-        col2 = i + (j - row)
-        if 1 <= col2 <= s
+        col2 = i + offset
+        if 1 <= col2 <= s && col2 != col1
             push!(out, SVector{2,Int}(row, col2))
         end
     end
@@ -58,44 +55,38 @@ end
 
 ### column == file
 function GetFile(j, i, board)
-    s = size(board)[1]
-    ### declare type of array
-    out = SVector{2,Int}[]
-
-    for row in 1:s
+    s = size(board, 1)
+    # preallocate exact length (s-1)
+    out = Vector{SVector{2,Int}}(undef, s-1)
+    idx = 1
+    @inbounds for row in 1:s
         if row == j
             continue
         end
-    push!(out, SVector{2,Int}(row, i))
+        out[idx] = SVector{2,Int}(row, i)
+        idx += 1
     end
-
     return out
 end
 
 ### row == rank
 function GetRank(j, i, board)
-    s = size(board)[1]
-    ### declare type of array
-    out = SVector{2,Int}[]
-
-    for col in 1:s
+    s = size(board, 1)
+    out = Vector{SVector{2,Int}}(undef, s-1)
+    idx = 1
+    @inbounds for col in 1:s
         if col == i
             continue
         end
-    push!(out, SVector{2,Int}(j, col))
+        out[idx] = SVector{2,Int}(j, col)
+        idx += 1
     end
-
     return out
 
 end
 
 ### j is row, i is column in board matrix
 function OccupiedSquare(j, i, board)
-    # if board[j, i] != EMPTY
-    #     return true
-    # else
-    #     return false
-    # end
     board[j, i] != EMPTY ? true : false
 end
 
