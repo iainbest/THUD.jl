@@ -12,18 +12,19 @@ A simple recreation of the Discworld boardgame THUD in the Julia language. I int
         - repetition unlikely to be feasible due to size of board etc., although there is some symmetry to the board we could exploit
 
 - move tracker output - have last player and last engine move (i.e. last dwarf + last troll move) for readability?
+- ~~player vs engine~~ need to check if playing as trolls is possible, then commit play.jl to repo
 - add engine vs engine, probably as a separate .jl file. Allow output of game (move history + other trackers, chosen engines + settings, final score, different evaluation functions)
     - visualisation / data of these completed games (e.g. 100 games of random vs random, minimax vs minimax at set depth, different evaluation functions)
     - see chess programming wiki [here](https://www.chessprogramming.org/Main_Page) for some other applicable ideas
-- test move ordering in minimax with alpha beta pruning
+- ~~test move ordering in minimax with alpha beta pruning~~
     - see e.g. [here](https://stackoverflow.com/questions/9964496/alpha-beta-move-ordering), [here](https://www.chessprogramming.org/Move_Ordering)
-    - are captures worth checking before moves? 
+    - implemented but more testing required
 
 - optimise minimax function
-    - move ordering?
-    - transposition table 
+    - ~~move ordering?~~ implemented but more testing required
+    - ~~transposition table~~ implemented but more testing required
     - parallelise?
-    - profile functions within minimax (functions like CollectAllStrings, MoveFromString, EvaluateBoard for manipulating board, use e.g. [ProfileView.jl](https://github.com/timholy/ProfileView.jl) or Julia's inbuilt @profile)
+    - ~~profile functions within minimax (functions like CollectAllStrings, MoveFromString, EvaluateBoard for manipulating board, use e.g. [ProfileView.jl](https://github.com/timholy/ProfileView.jl) or Julia's inbuilt @profile)~~ in progress, minimax has been sped up approx x25 so far on initial board
 
 
 #### Misc
@@ -42,11 +43,9 @@ A simple recreation of the Discworld boardgame THUD in the Julia language. I int
     - but this is not so simple: from guide, dwarf strategy seems to depend on building formations / blocks of dwarves (and the trolls on preventing this)
     - see `evaluation.jl` for some more detail
 - ~~simple engine (random moves)~~
-- ~~player vs engine~~
 - engine vs engine
 - slightly more sophisticated learning (minimax / tree search / reinforcement learning)
     - quiescence search?
-    - transposition table?
     - minimax appears logical at depth = 2
 
 ### Some cool THUD facts!
