@@ -25,11 +25,12 @@ function GetSquareNeighbours(j, i)
         filter!(x -> x != i + 1, column_idxs)
     end
 
-    ### get neighbour indices as Vector{Vector{Int64}}
-    neighbours = collect.(allcombinations(row_idxs, column_idxs))
+    ### get neighbour indices as Vector{SVector{2,Int}}
+    neighbours = SVector{2,Int}[(r, c) for (r, c) in allcombinations(row_idxs, column_idxs)]
 
     ### remove input square as neighbour
-    filter!(x -> x != [j, i], neighbours)
+    input = SVector{2,Int}(j, i)
+    filter!(x -> x != input, neighbours)
 
     return neighbours
 end
@@ -37,18 +38,18 @@ end
 function GetDiagonals(j, i, board)
     s = size(board)[1]
     ### declare type of array
-    out = Vector{Int64}[]
+    out = SVector{2,Int}[]
     for row in 1:s
         if j == row
             continue
         end
         col1 = i - (j - row)
         if 1 <= col1 <= s
-            push!(out, [row, col1])
+            push!(out, SVector{2,Int}(row, col1))
         end
         col2 = i + (j - row)
         if 1 <= col2 <= s
-            push!(out, [row, col2])
+            push!(out, SVector{2,Int}(row, col2))
         end
     end
 
@@ -59,13 +60,13 @@ end
 function GetFile(j, i, board)
     s = size(board)[1]
     ### declare type of array
-    out = Vector{Int64}[]
+    out = SVector{2,Int}[]
 
     for row in 1:s
         if row == j
             continue
         end
-        push!(out, [row, i])
+    push!(out, SVector{2,Int}(row, i))
     end
 
     return out
@@ -75,13 +76,13 @@ end
 function GetRank(j, i, board)
     s = size(board)[1]
     ### declare type of array
-    out = Vector{Int64}[]
+    out = SVector{2,Int}[]
 
     for col in 1:s
         if col == i
             continue
         end
-        push!(out, [j, col])
+    push!(out, SVector{2,Int}(j, col))
     end
 
     return out
@@ -102,96 +103,58 @@ end
 function GetSquaresBetween(from, to, board)
     @assert to ∈ GetRank(from..., board) || to ∈ GetFile(from..., board) || to ∈ GetDiagonals(from..., board)
 
-    ### same row
-    if from[1] == to[1]
-        step = 1
-        if to[2] < from[2]
-            step = -1
-        end
-        return [[from[1], k] for k in range(start=from[2], step=step, stop=to[2])]
+    # compute deltas
+    dr = to[1] - from[1]
+    dc = to[2] - from[2]
+    step_r = Int(sign(dr))
+    step_c = Int(sign(dc))
 
-        ### same column
-    elseif from[2] == to[2]
-        step = 1
-        if to[1] < from[1]
-            step = -1
-        end
-        return [[k, from[2]] for k in range(start=from[1], step=step, stop=to[1])]
+    # number of squares including endpoints
+    len = max(abs(dr), abs(dc)) + 1
+    out = Vector{SVector{2,Int}}(undef, len)
 
-        ### diagonal
-    else
-        r1 = from[1]:to[1]
-        r2 = from[2]:to[2]
-        if from[1] > to[1]
-            r1 = from[1]:-1:to[1]
-            # @show collect(r1)
-        end
-        if from[2] > to[2]
-            r2 = from[2]:-1:to[2]
-            # @show collect(r2)
-        end
-
-        return [[k, l] for (k, l) in zip(r1, r2)]
+    @inbounds for k in 0:(len-1)
+        r = from[1] + k * step_r
+        c = from[2] + k * step_c
+        out[k+1] = SVector{2,Int}(r, c)
     end
+
+    return out
 end
 
 ### get squares on other side of [j,i] wrt 'to'
 ### includes square [j,i]
 function GetSquaresOtherSide(from, to, board)
-
     sq_between = GetSquaresBetween(from, to, board)
 
-    ### need to look this many squares behind [j,i]
-    search_length = length(sq_between[1:end-1])
-
-    ### same row
-    if from[1] == to[1]
-
-        start = from[2]
-        step = 1
-        if to[2] > from[2]
-            step = -1
-        end
-
-        return [[from[1], k] for k in range(start, step=step, length=search_length)]
-
-        ### same column
-    elseif from[2] == to[2]
-
-        start = from[1]
-        step = 1
-        if to[1] > from[1]
-            step = -1
-        end
-
-        return [[k, from[2]] for k in range(start, step=step, length=search_length)]
-
-        ### diagonal
-    else
-
-        step1 = 1
-        step2 = 1
-
-        if to[1] > from[1]
-            step1 = -1
-        end
-        if to[2] > from[2]
-            step2 = -1
-        end
-
-        r1 = range(from[1], step=step1, length=search_length)
-        r2 = range(from[2], step=step2, length=search_length)
-
-        return [[k, l] for (k, l) in zip(r1, r2)]
+    # number of squares to return (including the source square)
+    search_length = length(sq_between) - 1
+    if search_length <= 0
+        return [SVector{2,Int}(from[1], from[2])]
     end
+
+    dr = to[1] - from[1]
+    dc = to[2] - from[2]
+    # step away from 'to' (opposite direction)
+    step_r = -Int(sign(dr))
+    step_c = -Int(sign(dc))
+
+    out = Vector{SVector{2,Int}}(undef, search_length)
+    @inbounds for k in 0:(search_length-1)
+        r = from[1] + k * step_r
+        c = from[2] + k * step_c
+        out[k+1] = SVector{2,Int}(r, c)
+    end
+
+    return out
 end
 
 function GetDwarfPositions(board)
-    DwarfPositions = []
+    DwarfPositions = SVector{2,Int}[]
     for row in 1:BOARD_SIZE
         for col in 1:BOARD_SIZE
             if board[row, col] == DWARF
-                push!(DwarfPositions, [row, col])
+                push!(DwarfPositions, SVector{2,Int}(row, col))
             end
         end
     end
@@ -199,11 +162,11 @@ function GetDwarfPositions(board)
 end
 
 function GetTrollPositions(board)
-    TrollPositions = []
+    TrollPositions = SVector{2,Int}[]
     for row in 1:BOARD_SIZE
         for col in 1:BOARD_SIZE
             if board[row, col] == TROLL
-                push!(TrollPositions, [row, col])
+                push!(TrollPositions, SVector{2,Int}(row, col))
             end
         end
     end
