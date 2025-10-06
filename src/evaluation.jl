@@ -13,49 +13,73 @@ function EvaluatePieceValues(board)
 end
 
 function GetAverageDwarfNeighbours(board)
-    average_dwarf_neighbours = 0
-    for dwarf_pos in GetDwarfPositions(board)
-        neighbours = GetSquareNeighbours(dwarf_pos[1], dwarf_pos[2])
-        average_dwarf_neighbours += count(==(DWARF), [board[n_...] for n_ in neighbours])
+    dwarves = GetDwarfPositions(board)
+    num_dwarves = length(dwarves)
+    if num_dwarves == 0
+        return 0.0
     end
-    average_dwarf_neighbours /= CountDwarves(board)
-    return average_dwarf_neighbours
+    total_neighbours = 0
+    @inbounds for d in dwarves
+        for n in GetSquareNeighbours(d[1], d[2])
+            total_neighbours += (board[n[1], n[2]] == DWARF) ? 1 : 0
+        end
+    end
+    return total_neighbours / num_dwarves
 end
 
 ### get number of unique! threatened trolls
 function GetThreatenedTrolls(board)
-    # Build a set of troll positions for fast membership tests
+    # Use BitVector masks indexed by linear index to avoid Set allocations
+    s = BOARD_SIZE
+    N = s * s
     trolls = GetTrollPositions(board)
-    troll_set = Set{Tuple{Int,Int}}(((p[1], p[2]) for p in trolls))
+    if isempty(trolls)
+        return 0
+    end
+    troll_mask = falses(N)
+    @inbounds for p in trolls
+        idx = (p[1]-1)*s + p[2]
+        troll_mask[idx] = true
+    end
 
-    threatened = Set{Tuple{Int,Int}}()
-    for d in GetDwarfPositions(board)
+    threatened_mask = falses(N)
+    threatened_count = 0
+    @inbounds for d in GetDwarfPositions(board)
         for h in GetPossibleDwarfHurls(d[1], d[2], board)
-            t = (h[1], h[2])
-            if t in troll_set
-                push!(threatened, t)
+            idx = (h[1]-1)*s + h[2]
+            if troll_mask[idx] && !threatened_mask[idx]
+                threatened_mask[idx] = true
+                threatened_count += 1
             end
         end
     end
-
-    return length(threatened)
+    return threatened_count
 end
 
 ### get number of unique threatened dwarves
 function GetThreatenedDwarves(board)
-    # We want the number of unique dwarves that can be threatened by any troll move
+    s = BOARD_SIZE
+    N = s * s
     dwarves = GetDwarfPositions(board)
-    dwarf_set = Set{Tuple{Int,Int}}(((p[1], p[2]) for p in dwarves))
+    if isempty(dwarves)
+        return 0
+    end
+    dwarf_mask = falses(N)
+    @inbounds for p in dwarves
+        dwarf_mask[(p[1]-1)*s + p[2]] = true
+    end
 
-    threatened = Set{Tuple{Int,Int}}()
-    for tpos in GetTrollPositions(board)
+    threatened_mask = falses(N)
+    threatened_count = 0
+    @inbounds for tpos in GetTrollPositions(board)
         # possible normal troll moves
         for mv in GetPossibleTrollMoves(tpos[1], tpos[2], board)
             for nb in GetSquareNeighbours(mv[1], mv[2])
-                if board[nb...] == DWARF
-                    coord = (nb[1], nb[2])
-                    if coord in dwarf_set
-                        push!(threatened, coord)
+                if board[nb[1], nb[2]] == DWARF
+                    idx = (nb[1]-1)*s + nb[2]
+                    if dwarf_mask[idx] && !threatened_mask[idx]
+                        threatened_mask[idx] = true
+                        threatened_count += 1
                     end
                 end
             end
@@ -64,17 +88,17 @@ function GetThreatenedDwarves(board)
         # possible troll shoves
         for sv in GetPossibleTrollShoves(tpos[1], tpos[2], board)
             for nb in GetSquareNeighbours(sv[1], sv[2])
-                if board[nb...] == DWARF
-                    coord = (nb[1], nb[2])
-                    if coord in dwarf_set
-                        push!(threatened, coord)
+                if board[nb[1], nb[2]] == DWARF
+                    idx = (nb[1]-1)*s + nb[2]
+                    if dwarf_mask[idx] && !threatened_mask[idx]
+                        threatened_mask[idx] = true
+                        threatened_count += 1
                     end
                 end
             end
         end
     end
-
-    return length(threatened)
+    return threatened_count
 end
 
 ### how to take into consideration more states of game, e.g.
@@ -84,9 +108,10 @@ end
 ###   number of possible attacks for trolls / dwarves - currently done by counting unique number of threatened dwarves / trolls
 ### +'ve for dwarves, -'ve for trolls
 function EvaluateBoard(board)
-
-    return EvaluatePieceValues(board) +
-           (GetAverageDwarfNeighbours(board) - 1.75) +
-           (GetThreatenedTrolls(board) * 2) -
-           (GetThreatenedDwarves(board) * 0.5)
+    # compute piece values once to avoid multiple counts inside helpers
+    piece_value = EvaluatePieceValues(board)
+    avg_neigh = GetAverageDwarfNeighbours(board)
+    threatened_trolls = GetThreatenedTrolls(board)
+    threatened_dwarves = GetThreatenedDwarves(board)
+    return piece_value + (avg_neigh - 1.75) + (threatened_trolls * 2) - (threatened_dwarves * 0.5)
 end

@@ -12,8 +12,13 @@ function MoveFromString!(board, move_string)
     piece, from_string, move_type, to_string = split(move_string, "-")
 
     ### get 'from' and 'to' from characters of from_string and to_string moves
-    from = SVector{2,Int}(parse(Int, from_string[2:end]), findfirst(x -> x == string(from_string[1]), files))
-    to = SVector{2,Int}(parse(Int, to_string[2:end]), findfirst(x -> x == string(to_string[1]), files))
+    # use precomputed file_index dict for faster mapping from file-char -> column index
+    fch = from_string[1]
+    tch = to_string[1]
+    fidx = get(file_index, fch, findfirst(x -> x[1] == fch, files))
+    tidx = get(file_index, tch, findfirst(x -> x[1] == tch, files))
+    from = SVector{2,Int}(parse(Int, from_string[2:end]), fidx)
+    to = SVector{2,Int}(parse(Int, to_string[2:end]), tidx)
 
     if (piece == "Dw" && move_type == "Sh") || (piece == "Tr" && move_type == "Hu")
         println("Impossible Move! Shoves / Hurls can only be done by Trolls / Dwarves!")
@@ -44,8 +49,12 @@ function MoveFromString(board, move_string)
     piece, from_string, move_type, to_string = split(move_string, "-")
 
     ### get 'from' and 'to' from characters of from_string and to_string moves
-    from = SVector{2,Int}(parse(Int, from_string[2:end]), findfirst(x -> x == string(from_string[1]), files))
-    to = SVector{2,Int}(parse(Int, to_string[2:end]), findfirst(x -> x == string(to_string[1]), files))
+    fch = from_string[1]
+    tch = to_string[1]
+    fidx = get(file_index, fch, findfirst(x -> x[1] == fch, files))
+    tidx = get(file_index, tch, findfirst(x -> x[1] == tch, files))
+    from = SVector{2,Int}(parse(Int, from_string[2:end]), fidx)
+    to = SVector{2,Int}(parse(Int, to_string[2:end]), tidx)
 
     if (piece == "Dw" && move_type == "Sh") || (piece == "Tr" && move_type == "Hu")
         println("Impossible Move! Shoves / Hurls can only be done by Trolls / Dwarves!")
@@ -71,30 +80,19 @@ end
 ### get move string from board move
 function MoveStringFromBoard(initial_pos, final_pos, dwarf_turn)
 
-    a = ""
-    if dwarf_turn[]
-        a = "Dw"
-    else
-        a = "Tr"
+    @inbounds begin
+        a = dwarf_turn[] ? "Dw" : "Tr"
+        return string(a, "-", files[initial_pos[2]], initial_pos[1], "-Mv-", files[final_pos[2]], final_pos[1])
     end
-
-    return a * "-" * files[initial_pos[2]] * string(initial_pos[1]) * "-" * "Mv" * "-" * files[final_pos[2]] * string(final_pos[1])
 end
 
 ### get capture string from board move
 function CaptureStringFromBoard(initial_pos, final_pos, dwarf_turn)
 
-    a = ""
-    c = ""
-    if dwarf_turn[]
-        a = "Dw"
-        c = "Hu"
-    else
-        a = "Tr"
-        c = "Sh"
+    @inbounds begin
+        (a,c) = dwarf_turn[] ? ("Dw","Hu") : ("Tr","Sh")
+        return string(a, "-", files[initial_pos[2]], initial_pos[1], "-$(c)-", files[final_pos[2]], final_pos[1])
     end
-
-    return a * "-" * files[initial_pos[2]] * string(initial_pos[1]) * "-" * c * "-" * files[final_pos[2]] * string(final_pos[1])
 
 end
 
@@ -103,25 +101,35 @@ function CollectAllStrings(board, PLAYER_TURN)
 
     a, b, c = GetAllPossibleMoves(board, PLAYER_TURN)
 
-    all_strings = String[]
+    # precompute total number of strings to avoid push! churn
+    total = 0
     for i in eachindex(a)
-        ### push captures
+        # c[i] or b[i] may be empty collections or contain SVector elements
+        total += sum(!isempty(b[i]) ? length(b[i]) : 0)
+        total += sum(!isempty(c[i]) ? length(c[i]) : 0)
+    end
+
+    if total == 0
+        return String[]
+    end
+
+    all_strings = Vector{String}(undef, total)
+    idx = 1
+    for i in eachindex(a)
         for j in c[i]
             if isempty(j)
                 continue
-            else
-                push!(all_strings, CaptureStringFromBoard(a[i], j, PLAYER_TURN))
             end
+            all_strings[idx] = CaptureStringFromBoard(a[i], j, PLAYER_TURN)
+            idx += 1
         end
-        ### push moves
         for j in b[i]
             if isempty(j)
                 continue
-            else
-                push!(all_strings, MoveStringFromBoard(a[i], j, PLAYER_TURN))
             end
+            all_strings[idx] = MoveStringFromBoard(a[i], j, PLAYER_TURN)
+            idx += 1
         end
-
     end
 
     return all_strings
